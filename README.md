@@ -34,6 +34,13 @@ These 6 bits are ordered as zx, nx, zy, ny, f, no
 ![MicrosoftTeams-image (17)](https://user-images.githubusercontent.com/56346800/190893382-82a8971d-4e9e-4731-99ca-e41e6273566e.png)
 
 
+The RAM
+  _______
+  A demultiplexer is used to select the appropiate area in RAM using the address passed. 
+  
+  ![MicrosoftTeams-image (16)](https://user-images.githubusercontent.com/56346800/190893396-a23f3b43-bc4a-440e-91c8-529b93867c23.png)
+  
+
 Computer Architecture
 ______________________
 
@@ -58,12 +65,6 @@ next instriction should be loaded.
   _______
   
   ![MicrosoftTeams-image (18)](https://user-images.githubusercontent.com/56346800/190893391-3cc99016-7ed8-40b9-87c4-9b55dee53667.png)
-
-  The RAM
-  _______
-  A demultiplexer is used to select the appropiate area in RAM using the address passed. 
-  
-  ![MicrosoftTeams-image (16)](https://user-images.githubusercontent.com/56346800/190893396-a23f3b43-bc4a-440e-91c8-529b93867c23.png)
 
  
   The ROM
