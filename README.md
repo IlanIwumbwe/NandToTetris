@@ -41,6 +41,12 @@ The RAM
   ![MicrosoftTeams-image (16)](https://user-images.githubusercontent.com/56346800/190893396-a23f3b43-bc4a-440e-91c8-529b93867c23.png)
   
 
+The ROM 
+_______
+  
+A 32K register ROM for instructions
+  
+
 Computer Architecture
 ______________________
 
@@ -66,10 +72,6 @@ next instriction should be loaded.
   
   ![MicrosoftTeams-image (18)](https://user-images.githubusercontent.com/56346800/190893391-3cc99016-7ed8-40b9-87c4-9b55dee53667.png)
 
- 
-  The ROM
-  _______
-  
-  A 32K register ROM for instructions
+
 
 
