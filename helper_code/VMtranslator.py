@@ -151,7 +151,10 @@ class VMTranslator:
     def translate(self):
         commands = self.parser.parse()
 
-        new_path = FILE_PATH.split('.')[0]+'.asm'
+        if not FILE_PATH.startswith("."):
+            new_path = FILE_PATH.split('.')[0]+'.asm' 
+        else: 
+            new_path = '.' + FILE_PATH.split('.')[1]+'.asm'
 
         assembly = []
 

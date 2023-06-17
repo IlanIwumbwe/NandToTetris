@@ -1,0 +1,402 @@
+// push constant 17
+@17
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 17
+@17
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// eq
+@SP
+AM=M-1
+D=M
+@SP
+AM=M-1
+D=M-D
+@TRUE2
+D;JEQ
+D=0
+@PUSHTOSTACK2
+0;JMP
+(TRUE2)
+D=-1
+(PUSHTOSTACK2)
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 17
+@17
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 16
+@16
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// eq
+@SP
+AM=M-1
+D=M
+@SP
+AM=M-1
+D=M-D
+@TRUE5
+D;JEQ
+D=0
+@PUSHTOSTACK5
+0;JMP
+(TRUE5)
+D=-1
+(PUSHTOSTACK5)
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 16
+@16
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 17
+@17
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// eq
+@SP
+AM=M-1
+D=M
+@SP
+AM=M-1
+D=M-D
+@TRUE8
+D;JEQ
+D=0
+@PUSHTOSTACK8
+0;JMP
+(TRUE8)
+D=-1
+(PUSHTOSTACK8)
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 892
+@892
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 891
+@891
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// lt
+@SP
+AM=M-1
+D=M
+@SP
+AM=M-1
+D=M-D
+@TRUE11
+D;JLT
+D=0
+@PUSHTOSTACK11
+0;JMP
+(TRUE11)
+D=-1
+(PUSHTOSTACK11)
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 891
+@891
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 892
+@892
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// lt
+@SP
+AM=M-1
+D=M
+@SP
+AM=M-1
+D=M-D
+@TRUE14
+D;JLT
+D=0
+@PUSHTOSTACK14
+0;JMP
+(TRUE14)
+D=-1
+(PUSHTOSTACK14)
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 891
+@891
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 891
+@891
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// lt
+@SP
+AM=M-1
+D=M
+@SP
+AM=M-1
+D=M-D
+@TRUE17
+D;JLT
+D=0
+@PUSHTOSTACK17
+0;JMP
+(TRUE17)
+D=-1
+(PUSHTOSTACK17)
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 32767
+@32767
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 32766
+@32766
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// gt
+@SP
+AM=M-1
+D=M
+@SP
+AM=M-1
+D=M-D
+@TRUE20
+D;JGT
+D=0
+@PUSHTOSTACK20
+0;JMP
+(TRUE20)
+D=-1
+(PUSHTOSTACK20)
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 32766
+@32766
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 32767
+@32767
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// gt
+@SP
+AM=M-1
+D=M
+@SP
+AM=M-1
+D=M-D
+@TRUE23
+D;JGT
+D=0
+@PUSHTOSTACK23
+0;JMP
+(TRUE23)
+D=-1
+(PUSHTOSTACK23)
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 32766
+@32766
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 32766
+@32766
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// gt
+@SP
+AM=M-1
+D=M
+@SP
+AM=M-1
+D=M-D
+@TRUE26
+D;JGT
+D=0
+@PUSHTOSTACK26
+0;JMP
+(TRUE26)
+D=-1
+(PUSHTOSTACK26)
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 57
+@57
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 31
+@31
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// push constant 53
+@53
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// add
+@SP
+AM=M-1
+D=M
+A=A-1
+M=M+D
+// push constant 112
+@112
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// sub
+@SP
+AM=M-1
+D=M
+A=A-1
+M=M-D
+// neg
+@SP
+A=M
+A=A-1
+M=-M
+// and
+@SP
+AM=M-1
+D=M
+A=A-1
+M=M&D
+// push constant 82
+@82
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+// or
+@SP
+AM=M-1
+D=M
+A=A-1
+M=M|D
+// not
+@SP
+A=M
+A=A-1
+M=!M
+// end loop
+(END)
+@END
+0;JMP
