@@ -22,23 +22,16 @@ class Parser:
         return instructions
 
     def commandType(self):
-        length = len(self.current_command.split(' '))
+        parts = self.current_command.split(' ')
 
-        if length == 1:
+        if len(parts) == 1:
+            # add, sub
             return 'C_ARITHMETIC'
-
-        elif length == 2:
-            arg1, arg2 = self.current_command.split(' ')
-
-            # goto, label, if
-            return f'C_{arg1.upper()}'
-
-        elif length == 3:
-            arg1, arg2, arg3 = self.current_command.split(' ')
-
-            # push, pop, function, call
-            return f'C_{arg1.upper()}'
-
+        
+        else:
+            # len = 2: goto, label, if
+            # len = 3: push, pop, function, call
+            return f'C_{parts[0].upper()}'
 
     def arg1(self):
         # return segment
