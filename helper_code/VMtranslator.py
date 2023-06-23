@@ -1,5 +1,6 @@
+import os
 
-FILE_PATH = input('Input path of assembly file: ').strip()
+FILE_PATH = input('Input path of VM file: ').strip()
 OPS = {'add':'+', 'sub':'-', 'neg':'-', 'eq':'JEQ', 'gt':'JGT', 'lt':'JLT', 'and':'&', 'or':'|', 'not':'!'}
 
 
@@ -7,8 +8,8 @@ class Parser:
     def __init__(self):
         self.current_command = ''
 
-    def parse(self):
-        with open(FILE_PATH, 'r') as cm:
+    def parse(self, current_file_path):
+        with open(current_file_path, 'r') as cm:
             instructions = []
 
             for i in cm.readlines():
@@ -48,7 +49,8 @@ class Parser:
 
 class CodeWriter:
     def __init__(self):
-        pass
+        # will be passed as needed, used for adding labels to the assembly code
+        self.current_file_path = ''
 
     def writeArithmetic(self, command, command_index):
         # will be string
@@ -97,7 +99,7 @@ class CodeWriter:
                 return ['@THAT', 'D=M', f'@{index}', 'A=D+A', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1']
 
             elif segment == 'static':
-                symbol = FILE_PATH.split('.')[0]+f'.{index}'
+                symbol = self.current_file_path.split('.')[0]+f'.{index}'
 
                 return [f'@{symbol}','D=M','@SP','A=M','M=D','@SP','M=M+1']
 
@@ -128,7 +130,7 @@ class CodeWriter:
                 return ['@5', 'D=A', f'@{index}', 'D=D+A', '@R13', 'M=D', '@SP', 'AM=M-1', 'D=M', '@R13', 'A=M', 'M=D']
 
             elif segment == 'static':
-                symbol = FILE_PATH.split('.')[0]+f'.{index}'
+                symbol = self.current_file_path.split('.')[0]+f'.{index}'
 
                 return  ['@SP','AM=M-1','D=M',f'@{symbol}','M=D']
 
@@ -141,44 +143,63 @@ class VMTranslator:
         self.parser = Parser()
         self.codewriter = CodeWriter()
 
-    def translate(self):
-        commands = self.parser.parse()
+    def translate(self, file_paths):
+        
+        for path in file_paths:
+            commands = self.parser.parse(path)
+            self.codewriter.current_file_path = path
 
-        if not FILE_PATH.startswith("."):
-            new_path = FILE_PATH.split('.')[0]+'.asm' 
-        else: 
-            new_path = '.' + FILE_PATH.split('.')[1]+'.asm'
+            assembly = []
 
-        assembly = []
+            for ind, i in enumerate(commands):
+                assembly.extend([f'// {i}'])
+                self.parser.current_command = i
+                command_type = self.parser.commandType()
 
-        for ind, i in enumerate(commands):
-            assembly.extend([f'// {i}'])
-            self.parser.current_command = i
-            command_type = self.parser.commandType()
+                if command_type != 'C_RETURN':
+                    arg1 = self.parser.arg1()
 
-            if command_type != 'C_RETURN':
-                arg1 = self.parser.arg1()
+                if command_type in ['C_PUSH', 'C_POP', 'C_FUNCTION', 'C_CALL']:
+                    arg2 = self.parser.arg2()
 
-            if command_type in ['C_PUSH', 'C_POP', 'C_FUNCTION', 'C_CALL']:
-                arg2 = self.parser.arg2()
+                if command_type == 'C_PUSH':
+                    assembly.extend(self.codewriter.writePushPop('push', arg1, arg2))
 
-            if command_type == 'C_PUSH':
-                assembly.extend(self.codewriter.writePushPop('push', arg1, arg2))
+                if command_type == 'C_POP':
+                    code = self.codewriter.writePushPop('pop', arg1, arg2)
+                    #print(code, i)
+                    assembly.extend(code)
 
-            if command_type == 'C_POP':
-                code = self.codewriter.writePushPop('pop', arg1, arg2)
-                print(code, i)
-                assembly.extend(code)
-
-            if command_type == 'C_ARITHMETIC':
-                assembly.extend(self.codewriter.writeArithmetic(arg1, ind))
+                if command_type == 'C_ARITHMETIC':
+                    assembly.extend(self.codewriter.writeArithmetic(arg1, ind))
 
         assembly.extend(['// end loop'])
         assembly.extend(self.codewriter.endLoop())
+
+        if len(file_paths) > 1:
+            # file directory with multiple .vm files was passed, save .asm file in folder
+            new_path = FILE_PATH + '/' + FILE_PATH.split('/')[-1] + '.asm'
+        else:
+            # single .vm file was passed
+
+            if not FILE_PATH.startswith("."):
+                # file path specified from current directory
+                new_path = FILE_PATH.split('.')[0]+'.asm' 
+            else:   
+                new_path = '.' + FILE_PATH.split('.')[1]+'.asm'
 
         asm = open(new_path, 'w')
         asm.write('\n'.join(assembly))
 
 
-vmt = VMTranslator()
-vmt.translate()
+if __name__ == "__main__":
+    vmt = VMTranslator()
+
+    print(os.path.isdir(FILE_PATH))
+
+    if not os.path.isdir(FILE_PATH):
+        vmt.translate([FILE_PATH])
+    else:
+        vmt.translate(os.listdir(FILE_PATH))
+
+
