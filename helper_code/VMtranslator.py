@@ -50,7 +50,15 @@ class Parser:
 class CodeWriter:
     def __init__(self):
         # will be passed as needed, used for adding labels to the assembly code
-        self.current_file_path = ''
+        self.__current_file_path = ''
+        self.current_function = ''
+
+
+    def setFilePath(self, file_path):
+        self.__current_file_path = file_path
+
+    def writeBootstrapCode(self):
+        return ['@256', 'D=A', '@SP', 'M=D'] + self.writeCall('Sys.init', 0)
 
     def writeArithmetic(self, command, command_index):
         # will be string
@@ -70,11 +78,10 @@ class CodeWriter:
         else:
             return SyntaxError('Invalid arithmetic-logical command')
 
-
     def writePushPop(self, command, segment, index):
         if command == 'push':
             if segment == 'constant':
-                return [f'@{index}', 'D=A', '@SP','A=M',f'M=D','@SP','M=M+1']
+                return [f'@{index}', 'D=A', '@SP','A=M', 'M=D','@SP','M=M+1']
 
             elif segment == 'local':
                 return ['@LCL', 'D=M', f'@{index}', 'A=D+A', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1']
@@ -102,7 +109,6 @@ class CodeWriter:
                 symbol = self.current_file_path.split('.')[0]+f'.{index}'
 
                 return [f'@{symbol}','D=M','@SP','A=M','M=D','@SP','M=M+1']
-
 
         if command == 'pop':
             if segment == 'constant':
@@ -133,6 +139,48 @@ class CodeWriter:
                 symbol = self.current_file_path.split('.')[0]+f'.{index}'
 
                 return  ['@SP','AM=M-1','D=M',f'@{symbol}','M=D']
+            
+    def writeLabel(self, label : str): # label already in correct convention
+        return [f'({label})']  
+
+    def writeGoTo(self, label : str): # label already in correct convention
+        return [f'@{label}', '0;JMP']
+
+    def writeIf(self, label : str): # label already in correct convention
+        return ['@SP', 'AM=M-1', 'D=M', f'@{label}', 'D;JLT']
+    
+    def writeFunction(self, functionName : str, nLVars : int): # functionName already in correct convention
+        # add entry label into code, initialise all local variables to 0 (use local segment)
+
+        return [f'({functionName})', f'@{nLVars-1}', 'D=A', '(CHECK)', '@FINISH_FUNC_INIT', 'D;JLT', '@SP', 'A=M', 'M=0', '@SP', 'M=M+1', 'D=D-1', '@CHECK', '0;JMP', '(FINISH_FUNC_INIT)']
+
+    def writeCall(self, functionName : str, nArgs : int): # functionName already in correct convention
+        '''
+        before call command, all function arguments have been pushed onto the stack, nArgs needed here to reposition the ARG pointer correctly
+        this function should save the stack frame of the caller function, reposition LCL and ARG pointers, transfer control to the function, 
+        add return address into code
+        '''
+
+        return ['// push stack frame of caller', '@RETURN_ADDR', 'D=A', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1'] + \
+        ['@LCL', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1'] + \
+        ['@ARG', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1'] + \
+        ['@THIS', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1'] + \
+        ['@THAT', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1'] + \
+        ['// reposition ARG and LCL pointers', '@SP', 'D=M', '@LCL', 'M=D', f'@{5 + nArgs}', 'D=D-A', '@ARG', 'M=D'] + \
+        ['//goto function', f'@({functionName})', '0;JMP', '(RETURN_ADDR)'] 
+
+    def writeReturn(self):
+        '''
+        access caller stack frame and restore values for the caller, repoisition SP for caller, reposition return address of caller
+        '''
+        return ['@LCL', 'D=M', '@R13', 'M=D   // R13 now stores the base of the frame', '@5', 'D=A', '@LCL', 'A=A-D', 'D=M', '@R14', 'M=D   // R14 now stores the return address'] + \
+        ['// add return value of the caller to arg0 in ARG_segment', '@SP', 'AM=M-1', 'D=M', '@ARG', 'A=M', 'M=D'] + \
+        ['// change value of stack pointer for caller', 'D=A', '@SP', 'M=D+1'] + \
+        ['// restore base addresses of caller', '@R13', 'A=M-1', 'D=M', '@THAT', 'A=M', 'M=D'] + \
+        ['@2', 'D=A', '@R13', 'A=M-D', 'D=M', '@THIS', 'A=M', 'M=D'] + \
+        ['@3', 'D=A', '@R13', 'A=M-D', 'D=M', '@ARG', 'A=M', 'M=D'] + \
+        ['@4', 'D=A', '@R13', 'A=M-D', 'D=M', '@LCL', 'A=M', 'M=D'] + \
+        ['// jump to return address, giving control back to callerr', '@R14', 'A=M', '0;JMP']
 
     def endLoop(self):
         return ['(END)','@END','0;JMP']
@@ -144,12 +192,22 @@ class VMTranslator:
         self.codewriter = CodeWriter()
 
     def translate(self, file_paths):
-        
-        for path in file_paths:
-            commands = self.parser.parse(path)
-            self.codewriter.current_file_path = path
+        assembly = []
+        function_name = ''
 
-            assembly = []
+        # add bootstrap code
+        assembly.extend(['// bootstrap code, set SP=256, and call Sys.init'] + self.codewriter.writeBootstrapCode())
+
+        for path in file_paths:
+
+            if os.path.isdir(FILE_PATH):
+                # complete directory to parse correctly, for multiple .vm files
+                commands = self.parser.parse(FILE_PATH + '/' + path)
+            else:
+                # single .vm file was passed, so that file path should be PARSED
+                commands = self.parser.parse(FILE_PATH)
+
+            self.codewriter.setFilePath(path)
 
             for ind, i in enumerate(commands):
                 assembly.extend([f'// {i}'])
@@ -165,29 +223,52 @@ class VMTranslator:
                 if command_type == 'C_PUSH':
                     assembly.extend(self.codewriter.writePushPop('push', arg1, arg2))
 
-                if command_type == 'C_POP':
-                    code = self.codewriter.writePushPop('pop', arg1, arg2)
-                    #print(code, i)
-                    assembly.extend(code)
+                elif command_type == 'C_POP':
+                    assembly.extend(self.codewriter.writePushPop('pop', arg1, arg2))
 
-                if command_type == 'C_ARITHMETIC':
+                elif command_type == 'C_ARITHMETIC':
                     assembly.extend(self.codewriter.writeArithmetic(arg1, ind))
 
+                elif command_type == 'C_FUNCTION':
+                    # function name passed changed to conform to convention
+                    # kept track of globally because func name is used in label, and return naming conventions
+
+                    function_name = path.split('.')[0] + '.' + arg1
+                    assembly.extend(self.codewriter.writeFunction(function_name , arg2))
+
+                elif command_type == 'C_CALL':
+                    # handle call overhead to function
+
+                    file_name = path.split('.')[0]
+                    assembly.extend(self.codewriter.writeCall(file_name + '.' + arg1, arg2))
+
+                elif command_type == 'C_RETURN':
+                    # handle return overhead from function
+                    assembly.extend(self.codewriter.writeReturn())
+
+                elif command_type == 'C_LABEL':
+                    # add labels to assembly code
+                    assembly.extend(self.codewriter.writeLabel(function_name + '$' + arg1))
+
+                elif command_type == 'C_GOTO':
+                    # add assembly to jump to labels in assembly code unconditionally
+                    assembly.extend(self.codewriter.writeGoTo(function_name + '$' + arg1))
+
+                elif command_type == 'C_IF':
+                    # add assembly to jump to labels in assembly conditionally
+                    assembly.extend(self.codewriter.writeIf(function_name + '$' + arg1))
+                
+        # end assembly program
         assembly.extend(['// end loop'])
         assembly.extend(self.codewriter.endLoop())
 
-        if len(file_paths) > 1:
+        if len(file_paths) == 1:
+            # single .vm file was passed   
+            new_path = FILE_PATH.replace('.vm', '.asm')
+        else:
             # file directory with multiple .vm files was passed, save .asm file in folder
             new_path = FILE_PATH + '/' + FILE_PATH.split('/')[-1] + '.asm'
-        else:
-            # single .vm file was passed
-
-            if not FILE_PATH.startswith("."):
-                # file path specified from current directory
-                new_path = FILE_PATH.split('.')[0]+'.asm' 
-            else:   
-                new_path = '.' + FILE_PATH.split('.')[1]+'.asm'
-
+        
         asm = open(new_path, 'w')
         asm.write('\n'.join(assembly))
 
@@ -195,10 +276,8 @@ class VMTranslator:
 if __name__ == "__main__":
     vmt = VMTranslator()
 
-    print(os.path.isdir(FILE_PATH))
-
-    if not os.path.isdir(FILE_PATH):
-        vmt.translate([FILE_PATH])
+    if not os.path.isdi(FILE_PATH):
+        vmt.translate([os.path.basename(FILE_PATH)])
     else:
         vmt.translate(os.listdir(FILE_PATH))
 

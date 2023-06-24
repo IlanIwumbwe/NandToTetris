@@ -1,6 +1,6 @@
 // push constant 10
 @10
-D=A
+D=A  
 @SP
 A=M
 M=D
