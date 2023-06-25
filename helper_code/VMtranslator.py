@@ -158,7 +158,7 @@ class CodeWriter:
         '''
         before call command, all function arguments have been pushed onto the stack, nArgs needed here to reposition the ARG pointer correctly
         this function should save the stack frame of the caller function, reposition LCL and ARG pointers, transfer control to the function, 
-        add return address into code
+        and add return address into code
         '''
 
         return ['// push stack frame of caller', '@RETURN_ADDR', 'D=A', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1'] + \
@@ -173,15 +173,15 @@ class CodeWriter:
         '''
         access caller stack frame and restore values for the caller, repoisition SP for caller, reposition return address of caller
         '''
-        return ['@LCL', 'D=M', '@R13', 'M=D   // R13 now stores the base of the frame', '@5', 'D=A', '@LCL', 'A=A-D', 'D=M', '@R14', 'M=D   // R14 now stores the return address'] + \
+        return ['@LCL', 'D=M', '@R13', 'M=D   // R13 now stores the base of the frame', '@5', 'D=A', '@LCL', 'A=M-D', 'D=M', '@R14', 'M=D   // R14 now stores the return address'] + \
         ['// add return value of the caller to arg0 in ARG_segment', '@SP', 'AM=M-1', 'D=M', '@ARG', 'A=M', 'M=D'] + \
         ['// change value of stack pointer for caller', 'D=A', '@SP', 'M=D+1'] + \
         ['// restore base addresses of caller', '@R13', 'A=M-1', 'D=M', '@THAT', 'A=M', 'M=D'] + \
         ['@2', 'D=A', '@R13', 'A=M-D', 'D=M', '@THIS', 'A=M', 'M=D'] + \
         ['@3', 'D=A', '@R13', 'A=M-D', 'D=M', '@ARG', 'A=M', 'M=D'] + \
         ['@4', 'D=A', '@R13', 'A=M-D', 'D=M', '@LCL', 'A=M', 'M=D'] + \
-        ['// jump to return address, giving control back to callerr', '@R14', 'A=M', '0;JMP']
-
+        ['// jump to return address, giving control back to caller', '@R14', 'A=M', '0;JMP']
+    
     def endLoop(self):
         return ['(END)','@END','0;JMP']
 
@@ -276,9 +276,10 @@ class VMTranslator:
 if __name__ == "__main__":
     vmt = VMTranslator()
 
-    if not os.path.isdi(FILE_PATH):
+    if not os.path.isdir(FILE_PATH):
         vmt.translate([os.path.basename(FILE_PATH)])
     else:
-        vmt.translate(os.listdir(FILE_PATH))
+        # add only .vm files in folder to be translated
+        vmt.translate([f for f in os.listdir(FILE_PATH) if '.vm' in f])
 
 
