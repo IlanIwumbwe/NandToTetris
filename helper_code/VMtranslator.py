@@ -25,14 +25,17 @@ class Parser:
     def commandType(self):
         parts = self.current_command.split(' ')
 
-        if len(parts) == 1:
-            # add, sub
-            return 'C_ARITHMETIC'
-        
-        else:
-            # len = 2: goto, label, if
-            # len = 3: push, pop, function, call
-            return f'C_{parts[0].upper()}'
+        if self.current_command == 'return':
+            return 'C_RETURN'
+        else:    
+            if len(parts) == 1:
+                # add, sub
+                return 'C_ARITHMETIC'
+            
+            else:
+                # len = 2: goto, label, if
+                # len = 3: push, pop, function, call
+                return f'C_{parts[0].upper()}'
 
     def arg1(self):
         # return segment
@@ -50,12 +53,12 @@ class Parser:
 class CodeWriter:
     def __init__(self):
         # will be passed as needed, used for adding labels to the assembly code
-        self.__current_file_path = ''
+        self.current_file_path = ''
         self.current_function = ''
-
-
+        self.calls = 0
+        
     def setFilePath(self, file_path):
-        self.__current_file_path = file_path
+        self.current_file_path = file_path
 
     def writeBootstrapCode(self):
         return ['@256', 'D=A', '@SP', 'M=D'] + self.writeCall('Sys.init', 0)
@@ -141,33 +144,34 @@ class CodeWriter:
                 return  ['@SP','AM=M-1','D=M',f'@{symbol}','M=D']
             
     def writeLabel(self, label : str): # label already in correct convention
-        return [f'({label})']  
+        return [f'({self.current_function}${label})']  
 
     def writeGoTo(self, label : str): # label already in correct convention
-        return [f'@{label}', '0;JMP']
+        return [f'@{self.current_function}${label}', '0;JMP']
 
-    def writeIf(self, label : str): # label already in correct convention
-        return ['@SP', 'AM=M-1', 'D=M', f'@{label}', 'D;JLT']
+    def writeIfGoTo(self, label : str): # label already in correct convention
+        return ['@SP', 'AM=M-1', 'D=M', f'@{self.current_function}${label}', 'D;JNE']
     
-    def writeFunction(self, functionName : str, nLVars : int): # functionName already in correct convention
+    def writeFunction(self, functionName, nLVars): # functionName already in correct convention
         # add entry label into code, initialise all local variables to 0 (use local segment)
+        self.current_function = functionName 
 
-        return [f'({functionName})', f'@{nLVars-1}', 'D=A', '(CHECK)', '@FINISH_FUNC_INIT', 'D;JLT', '@SP', 'A=M', 'M=0', '@SP', 'M=M+1', 'D=D-1', '@CHECK', '0;JMP', '(FINISH_FUNC_INIT)']
+        return [f'({self.current_function})', f'@{int(nLVars)-1}', 'D=A', '(CHECK)', '@FINISH_FUNC_INIT', 'D;JLT', '@SP', 'A=M', 'M=0', '@SP', 'M=M+1', 'D=D-1', '@CHECK', '0;JMP', '(FINISH_FUNC_INIT)']
 
-    def writeCall(self, functionName : str, nArgs : int): # functionName already in correct convention
+    def writeCall(self, functionName, nArgs): # functionName already in correct convention
         '''
         before call command, all function arguments have been pushed onto the stack, nArgs needed here to reposition the ARG pointer correctly
         this function should save the stack frame of the caller function, reposition LCL and ARG pointers, transfer control to the function, 
         and add return address into code
         '''
 
-        return ['// push stack frame of caller', '@RETURN_ADDR', 'D=A', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1'] + \
+        return ['// push stack frame of caller', f'@{self.current_function}$ret', 'D=A', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1'] + \
         ['@LCL', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1'] + \
         ['@ARG', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1'] + \
         ['@THIS', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1'] + \
         ['@THAT', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1'] + \
-        ['// reposition ARG and LCL pointers', '@SP', 'D=M', '@LCL', 'M=D', f'@{5 + nArgs}', 'D=D-A', '@ARG', 'M=D'] + \
-        ['//goto function', f'@({functionName})', '0;JMP', '(RETURN_ADDR)'] 
+        ['// reposition ARG and LCL pointers', '@SP', 'D=M', '@LCL', 'M=D', f'@{5 + int(nArgs)}', 'D=D-A', '@ARG', 'M=D'] + \
+        ['//goto function', f'@({functionName})', '0;JMP', f'({self.current_function}$ret)'] 
 
     def writeReturn(self):
         '''
@@ -175,7 +179,7 @@ class CodeWriter:
         '''
         return ['@LCL', 'D=M', '@R13', 'M=D   // R13 now stores the base of the frame', '@5', 'D=A', '@LCL', 'A=M-D', 'D=M', '@R14', 'M=D   // R14 now stores the return address'] + \
         ['// add return value of the caller to arg0 in ARG_segment', '@SP', 'AM=M-1', 'D=M', '@ARG', 'A=M', 'M=D'] + \
-        ['// change value of stack pointer for caller', 'D=A', '@SP', 'M=D+1'] + \
+        ['// change value of stack pointer for caller', '@ARG','D=M','@SP', 'M=D+1'] + \
         ['// restore base addresses of caller', '@R13', 'A=M-1', 'D=M', '@THAT', 'A=M', 'M=D'] + \
         ['@2', 'D=A', '@R13', 'A=M-D', 'D=M', '@THIS', 'A=M', 'M=D'] + \
         ['@3', 'D=A', '@R13', 'A=M-D', 'D=M', '@ARG', 'A=M', 'M=D'] + \
@@ -193,10 +197,9 @@ class VMTranslator:
 
     def translate(self, file_paths):
         assembly = []
-        function_name = ''
 
         # add bootstrap code
-        assembly.extend(['// bootstrap code, set SP=256, and call Sys.init'] + self.codewriter.writeBootstrapCode())
+        # assembly.extend(['// bootstrap code, set SP=256, and call Sys.init'] + self.codewriter.writeBootstrapCode())
 
         for path in file_paths:
 
@@ -232,15 +235,12 @@ class VMTranslator:
                 elif command_type == 'C_FUNCTION':
                     # function name passed changed to conform to convention
                     # kept track of globally because func name is used in label, and return naming conventions
-
-                    function_name = path.split('.')[0] + '.' + arg1
-                    assembly.extend(self.codewriter.writeFunction(function_name , arg2))
+                    assembly.extend(self.codewriter.writeFunction(arg1 , arg2))
 
                 elif command_type == 'C_CALL':
                     # handle call overhead to function
 
-                    file_name = path.split('.')[0]
-                    assembly.extend(self.codewriter.writeCall(file_name + '.' + arg1, arg2))
+                    assembly.extend(self.codewriter.writeCall(arg1, arg2))
 
                 elif command_type == 'C_RETURN':
                     # handle return overhead from function
@@ -248,15 +248,15 @@ class VMTranslator:
 
                 elif command_type == 'C_LABEL':
                     # add labels to assembly code
-                    assembly.extend(self.codewriter.writeLabel(function_name + '$' + arg1))
+                    assembly.extend(self.codewriter.writeLabel(arg1))
 
                 elif command_type == 'C_GOTO':
                     # add assembly to jump to labels in assembly code unconditionally
-                    assembly.extend(self.codewriter.writeGoTo(function_name + '$' + arg1))
+                    assembly.extend(self.codewriter.writeGoTo(arg1))
 
-                elif command_type == 'C_IF':
+                elif command_type == 'C_IF-GOTO':
                     # add assembly to jump to labels in assembly conditionally
-                    assembly.extend(self.codewriter.writeIf(function_name + '$' + arg1))
+                    assembly.extend(self.codewriter.writeIfGoTo(arg1))
                 
         # end assembly program
         assembly.extend(['// end loop'])
