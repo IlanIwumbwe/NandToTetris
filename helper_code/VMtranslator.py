@@ -171,7 +171,7 @@ class CodeWriter:
         ['@THIS', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1'] + \
         ['@THAT', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1'] + \
         ['// reposition ARG and LCL pointers', '@SP', 'D=M', '@LCL', 'M=D', f'@{5 + int(nArgs)}', 'D=D-A', '@ARG', 'M=D'] + \
-        ['//goto function', f'@({functionName})', '0;JMP', f'({self.current_function}$ret)'] 
+        ['//goto function', f'@{functionName}', '0;JMP', f'({self.current_function}$ret)'] 
 
     def writeReturn(self):
         '''
@@ -199,13 +199,13 @@ class VMTranslator:
         assembly = []
 
         # add bootstrap code
-        # assembly.extend(['// bootstrap code, set SP=256, and call Sys.init'] + self.codewriter.writeBootstrapCode())
+        assembly.extend(['// bootstrap code, set SP=256, and call Sys.init'] + self.codewriter.writeBootstrapCode())
 
         for path in file_paths:
 
             if os.path.isdir(FILE_PATH):
                 # complete directory to parse correctly, for multiple .vm files
-                commands = self.parser.parse(FILE_PATH + '/' + path)
+                commands = self.parser.parse(FILE_PATH + '\\' + path)
             else:
                 # single .vm file was passed, so that file path should be PARSED
                 commands = self.parser.parse(FILE_PATH)
@@ -267,7 +267,7 @@ class VMTranslator:
             new_path = FILE_PATH.replace('.vm', '.asm')
         else:
             # file directory with multiple .vm files was passed, save .asm file in folder
-            new_path = FILE_PATH + '/' + FILE_PATH.split('/')[-1] + '.asm'
+            new_path = FILE_PATH + '\\' + FILE_PATH.split('\\')[-1] + '.asm'
         
         asm = open(new_path, 'w')
         asm.write('\n'.join(assembly))
@@ -280,6 +280,7 @@ if __name__ == "__main__":
         vmt.translate([os.path.basename(FILE_PATH)])
     else:
         # add only .vm files in folder to be translated
+        print([f for f in os.listdir(FILE_PATH) if '.vm' in f])
         vmt.translate([f for f in os.listdir(FILE_PATH) if '.vm' in f])
 
 
