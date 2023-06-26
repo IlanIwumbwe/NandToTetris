@@ -180,10 +180,10 @@ class CodeWriter:
         return ['@LCL', 'D=M', '@R13', 'M=D   // R13 now stores the base of the frame', '@5', 'D=A', '@LCL', 'A=M-D', 'D=M', '@R14', 'M=D   // R14 now stores the return address'] + \
         ['// add return value of the caller to arg0 in ARG_segment', '@SP', 'AM=M-1', 'D=M', '@ARG', 'A=M', 'M=D'] + \
         ['// change value of stack pointer for caller', '@ARG','D=M','@SP', 'M=D+1'] + \
-        ['// restore base addresses of caller', '@R13', 'A=M-1', 'D=M', '@THAT', 'A=M', 'M=D'] + \
-        ['@2', 'D=A', '@R13', 'A=M-D', 'D=M', '@THIS', 'A=M', 'M=D'] + \
-        ['@3', 'D=A', '@R13', 'A=M-D', 'D=M', '@ARG', 'A=M', 'M=D'] + \
-        ['@4', 'D=A', '@R13', 'A=M-D', 'D=M', '@LCL', 'A=M', 'M=D'] + \
+        ['// restore base addresses of caller', '@R13', 'A=M-1', 'D=M', '@THAT', 'M=D'] + \
+        ['@2', 'D=A', '@R13', 'A=M-D', 'D=M', '@THIS', 'M=D'] + \
+        ['@3', 'D=A', '@R13', 'A=M-D', 'D=M', '@ARG', 'M=D'] + \
+        ['@4', 'D=A', '@R13', 'A=M-D', 'D=M', '@LCL', 'M=D'] + \
         ['// jump to return address, giving control back to caller', '@R14', 'A=M', '0;JMP']
     
     def endLoop(self):
