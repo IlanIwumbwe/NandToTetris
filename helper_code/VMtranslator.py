@@ -3,7 +3,6 @@ import os
 FILE_PATH = input('Input path of VM file: ').strip()
 OPS = {'add':'+', 'sub':'-', 'neg':'-', 'eq':'JEQ', 'gt':'JGT', 'lt':'JLT', 'and':'&', 'or':'|', 'not':'!'}
 
-
 class Parser:
     def __init__(self):
         self.current_command = ''
@@ -55,13 +54,13 @@ class CodeWriter:
         # will be passed as needed, used for adding labels to the assembly code
         self.current_file_path = ''
         self.current_function = ''
-        self.calls = 0
+        self.calls = {'' : 0}
         
     def setFilePath(self, file_path):
         self.current_file_path = file_path
 
     def writeBootstrapCode(self):
-        return ['@256', 'D=A', '@SP', 'M=D'] + self.writeCall('Sys.init', 0)
+        return ['@256', 'D=A', '@SP', 'M=D'] + self.writeCall("Sys.init", 0)
 
     def writeArithmetic(self, command, command_index):
         # will be string
@@ -154,9 +153,11 @@ class CodeWriter:
     
     def writeFunction(self, functionName, nLVars): # functionName already in correct convention
         # add entry label into code, initialise all local variables to 0 (use local segment)
-        self.current_function = functionName 
 
-        return [f'({self.current_function})', f'@{int(nLVars)-1}', 'D=A', '(CHECK)', '@FINISH_FUNC_INIT', 'D;JLT', '@SP', 'A=M', 'M=0', '@SP', 'M=M+1', 'D=D-1', '@CHECK', '0;JMP', '(FINISH_FUNC_INIT)']
+        self.current_function = functionName                
+        self.calls[self.current_function] = 0       
+
+        return [f'({self.current_function})', '\n@SP\nA=M\nM=0\n@SP\nM=M+1'*int(nLVars)]
 
     def writeCall(self, functionName, nArgs): # functionName already in correct convention
         '''
@@ -165,26 +166,35 @@ class CodeWriter:
         and add return address into code
         '''
 
-        return ['// push stack frame of caller', f'@{self.current_function}$ret', 'D=A', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1'] + \
-        ['@LCL', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1'] + \
-        ['@ARG', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1'] + \
-        ['@THIS', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1'] + \
-        ['@THAT', 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1'] + \
-        ['// reposition ARG and LCL pointers', '@SP', 'D=M', '@LCL', 'M=D', f'@{5 + int(nArgs)}', 'D=D-A', '@ARG', 'M=D'] + \
-        ['//goto function', f'@{functionName}', '0;JMP', f'({self.current_function}$ret)'] 
+        # current_func = '' only at the beginning when in bootstrap section, no need to count calls in func here
+        if (self.current_function != ''):
+            self.calls[self.current_function] += 1
+
+        call_assembly = ['// push stack frame of caller', f'@{self.current_function}$ret.{self.calls[self.current_function]}', 'D=A', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1'] 
+
+        for pointer in ['@LCL', '@ARG', '@THIS', '@THAT']:
+            call_assembly.extend([pointer, 'D=M', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1'])
+
+        call_assembly.extend(['// reposition ARG and LCL pointers', '@SP', 'D=M', '@LCL', 'M=D', f'@{5 + int(nArgs)}', 'D=D-A', '@ARG', 'M=D'] + \
+        ['//goto function', f'@{functionName}', '0;JMP', f'({self.current_function}$ret.{self.calls[self.current_function]})'])
+
+        return call_assembly
 
     def writeReturn(self):
         '''
         access caller stack frame and restore values for the caller, repoisition SP for caller, reposition return address of caller
         '''
-        return ['@LCL', 'D=M', '@R13', 'M=D   // R13 now stores the base of the frame', '@5', 'D=A', '@LCL', 'A=M-D', 'D=M', '@R14', 'M=D   // R14 now stores the return address'] + \
+
+        ret_assembly = ['@LCL', 'D=M', '@R13', 'M=D   // R13 now stores the base of the frame', '@5', 'A=D-A', 'D=M', '@R14', 'M=D   // R14 now stores the return address'] + \
         ['// add return value of the caller to arg0 in ARG_segment', '@SP', 'AM=M-1', 'D=M', '@ARG', 'A=M', 'M=D'] + \
-        ['// change value of stack pointer for caller', '@ARG','D=M','@SP', 'M=D+1'] + \
-        ['// restore base addresses of caller', '@R13', 'A=M-1', 'D=M', '@THAT', 'M=D'] + \
-        ['@2', 'D=A', '@R13', 'A=M-D', 'D=M', '@THIS', 'M=D'] + \
-        ['@3', 'D=A', '@R13', 'A=M-D', 'D=M', '@ARG', 'M=D'] + \
-        ['@4', 'D=A', '@R13', 'A=M-D', 'D=M', '@LCL', 'M=D'] + \
-        ['// jump to return address, giving control back to caller', '@R14', 'A=M', '0;JMP']
+        ['// change value of stack pointer for caller', '@ARG','D=M','@SP', 'M=D+1', '// restore base addresses of caller'] 
+
+        for pointer in ['@THAT', '@THIS', '@ARG', '@LCL']:
+            ret_assembly.extend(['@R13', 'AM=M-1', 'D=M   // D = *(FRAME - (i+1))', pointer, 'M=D'])
+
+        ret_assembly.extend(['// jump to return address, giving control back to caller', '@R14', 'A=M', '0;JMP'])
+
+        return ret_assembly
     
     def endLoop(self):
         return ['(END)','@END','0;JMP']
@@ -216,6 +226,8 @@ class VMTranslator:
                 assembly.extend([f'// {i}'])
                 self.parser.current_command = i
                 command_type = self.parser.commandType()
+
+                #print(command_type)
 
                 if command_type != 'C_RETURN':
                     arg1 = self.parser.arg1()
@@ -262,7 +274,7 @@ class VMTranslator:
         assembly.extend(['// end loop'])
         assembly.extend(self.codewriter.endLoop())
 
-        if len(file_paths) == 1:
+        if not os.path.isdir(FILE_PATH):
             # single .vm file was passed   
             new_path = FILE_PATH.replace('.vm', '.asm')
         else:

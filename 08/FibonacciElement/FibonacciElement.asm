@@ -4,7 +4,7 @@ D=A
 @SP
 M=D
 // push stack frame of caller
-@$ret
+@$ret.0
 D=A
 @SP
 A=M
@@ -51,23 +51,10 @@ M=D
 //goto function
 @Sys.init
 0;JMP
-($ret)
+($ret.0)
 // function Main.fibonacci 0
 (Main.fibonacci)
-@-1
-D=A
-(CHECK)
-@FINISH_FUNC_INIT
-D;JLT
-@SP
-A=M
-M=0
-@SP
-M=M+1
-D=D-1
-@CHECK
-0;JMP
-(FINISH_FUNC_INIT)
+
 // push argument 0
 @ARG
 D=M
@@ -135,9 +122,7 @@ D=M
 @R13
 M=D   // R13 now stores the base of the frame
 @5
-D=A
-@LCL
-A=M-D
+A=D-A
 D=M
 @R14
 M=D   // R14 now stores the return address
@@ -155,29 +140,23 @@ D=M
 M=D+1
 // restore base addresses of caller
 @R13
-A=M-1
-D=M
+AM=M-1
+D=M   // D = *(FRAME - (i+1))
 @THAT
 M=D
-@2
-D=A
 @R13
-A=M-D
-D=M
+AM=M-1
+D=M   // D = *(FRAME - (i+1))
 @THIS
 M=D
-@3
-D=A
 @R13
-A=M-D
-D=M
+AM=M-1
+D=M   // D = *(FRAME - (i+1))
 @ARG
 M=D
-@4
-D=A
 @R13
-A=M-D
-D=M
+AM=M-1
+D=M   // D = *(FRAME - (i+1))
 @LCL
 M=D
 // jump to return address, giving control back to caller
@@ -213,7 +192,7 @@ A=A-1
 M=M-D
 // call Main.fibonacci 1
 // push stack frame of caller
-@Main.fibonacci$ret
+@Main.fibonacci$ret.1
 D=A
 @SP
 A=M
@@ -260,7 +239,7 @@ M=D
 //goto function
 @Main.fibonacci
 0;JMP
-(Main.fibonacci$ret)
+(Main.fibonacci$ret.1)
 // push argument 0
 @ARG
 D=M
@@ -288,7 +267,7 @@ A=A-1
 M=M-D
 // call Main.fibonacci 1
 // push stack frame of caller
-@Main.fibonacci$ret
+@Main.fibonacci$ret.2
 D=A
 @SP
 A=M
@@ -335,7 +314,7 @@ M=D
 //goto function
 @Main.fibonacci
 0;JMP
-(Main.fibonacci$ret)
+(Main.fibonacci$ret.2)
 // add
 @SP
 AM=M-1
@@ -348,9 +327,7 @@ D=M
 @R13
 M=D   // R13 now stores the base of the frame
 @5
-D=A
-@LCL
-A=M-D
+A=D-A
 D=M
 @R14
 M=D   // R14 now stores the return address
@@ -368,29 +345,23 @@ D=M
 M=D+1
 // restore base addresses of caller
 @R13
-A=M-1
-D=M
+AM=M-1
+D=M   // D = *(FRAME - (i+1))
 @THAT
 M=D
-@2
-D=A
 @R13
-A=M-D
-D=M
+AM=M-1
+D=M   // D = *(FRAME - (i+1))
 @THIS
 M=D
-@3
-D=A
 @R13
-A=M-D
-D=M
+AM=M-1
+D=M   // D = *(FRAME - (i+1))
 @ARG
 M=D
-@4
-D=A
 @R13
-A=M-D
-D=M
+AM=M-1
+D=M   // D = *(FRAME - (i+1))
 @LCL
 M=D
 // jump to return address, giving control back to caller
@@ -399,20 +370,7 @@ A=M
 0;JMP
 // function Sys.init 0
 (Sys.init)
-@-1
-D=A
-(CHECK)
-@FINISH_FUNC_INIT
-D;JLT
-@SP
-A=M
-M=0
-@SP
-M=M+1
-D=D-1
-@CHECK
-0;JMP
-(FINISH_FUNC_INIT)
+
 // push constant 4
 @4
 D=A
@@ -423,7 +381,7 @@ M=D
 M=M+1
 // call Main.fibonacci 1
 // push stack frame of caller
-@Sys.init$ret
+@Sys.init$ret.1
 D=A
 @SP
 A=M
@@ -470,7 +428,7 @@ M=D
 //goto function
 @Main.fibonacci
 0;JMP
-(Sys.init$ret)
+(Sys.init$ret.1)
 // label WHILE
 (Sys.init$WHILE)
 // goto WHILE

@@ -1,64 +1,10 @@
-// bootstrap code, set SP=256, and call Sys.init
-@256
-D=A
-@SP
-M=D
-// push stack frame of caller
-@$ret
-D=A
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@LCL
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@ARG
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@THIS
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@THAT
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-// reposition ARG and LCL pointers
-@SP
-D=M
-@LCL
-M=D
-@5
-D=D-A
-@ARG
-M=D
-//goto function
-@Sys.init
-0;JMP
-($ret)
 // function SimpleFunction.test 2
 (SimpleFunction.test)
-@1
+@2
 D=A
 (CHECK)
 @FINISH_FUNC_INIT
-D;JLT
+D;JEQ
 @SP
 A=M
 M=0
@@ -141,9 +87,7 @@ D=M
 @R13
 M=D   // R13 now stores the base of the frame
 @5
-D=A
-@LCL
-A=M-D
+A=D-A
 D=M
 @R14
 M=D   // R14 now stores the return address
@@ -161,29 +105,23 @@ D=M
 M=D+1
 // restore base addresses of caller
 @R13
-A=M-1
-D=M
+AMD=M-1
+D=M   // D = *(FRAME - (i+1))
 @THAT
 M=D
-@2
-D=A
 @R13
-A=M-D
-D=M
+AMD=M-1
+D=M   // D = *(FRAME - (i+1))
 @THIS
 M=D
-@3
-D=A
 @R13
-A=M-D
-D=M
+AMD=M-1
+D=M   // D = *(FRAME - (i+1))
 @ARG
 M=D
-@4
-D=A
 @R13
-A=M-D
-D=M
+AMD=M-1
+D=M   // D = *(FRAME - (i+1))
 @LCL
 M=D
 // jump to return address, giving control back to caller
