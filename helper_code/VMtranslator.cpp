@@ -181,6 +181,16 @@ class CodeWriter{
             current_file_path = "";
             current_function = "";
             calls[""] = 0;
+            
+            OPS["add"] = "+";
+            OPS["sub"] = "-";
+            OPS["neg"] = "-";
+            OPS["eq"] = "JEQ";
+            OPS["gt"] = "JGT";
+            OPS["lt"] = "JLT";
+            OPS["and"] = "&";
+            OPS["or"] = "|";
+            OPS["not"] = "!";
         }
 
         void SetFilePath(std::string current_path){
@@ -384,8 +394,8 @@ class CodeWriter{
         std::string current_function;
         std::map<std::string, int> calls;
 
-        std::map<std::string, std::string> OPS {{"add","+"}, {"sub","-"}, {"neg","-"}, {"eq","JEQ"}, {"gt","JGT"}, {"lt","JLT"}, {"and","&"}, {"or","|"}, {"not","!"}}; 
-
+        std::map<std::string, std::string> OPS;
+    
         std::vector<std::string> pointers {"LCL", "ARG", "THIS", "THAT"};
 
         std::string pushToStack = "@SP\nA=M\nM=D\n@SP\nM=M+1";
