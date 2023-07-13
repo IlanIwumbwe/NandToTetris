@@ -1,0 +1,33 @@
+// defines TicTacToe piece
+
+class Piece{
+
+    field int type;  // 0 - naught, 1 - cross
+    field int width, height;
+    static int thickness;
+
+    constructor Piece new(int t){
+        let width = 16;
+        let height = 16;
+        let type = t;
+        let thickness = 4;
+
+        return this;
+
+    }
+
+    method void drawNaught(int x, int y){
+        var int ro, ri;
+
+        let ro = width / 2;
+        let ri = ro - thickness;
+
+        do Screen.drawCircle(x+ro, y+ro, ro);
+        do Screen.setColor(false);
+        do Screen.drawCircle(x+ro, y+ro, ri);
+        do Screen.setColor(true);
+
+        return;
+    }
+
+}

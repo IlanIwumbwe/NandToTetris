@@ -1,0 +1,13 @@
+// this is supposed to be an implementation of TicTacToe in the Jack programming language
+
+// WORK IN PROGRESS
+
+class Main{
+    function void main() {
+        var Piece p1;
+        let p1 = Piece.new(0);
+
+        do p1.drawNaught(0, 0);
+        return;
+    }
+}
