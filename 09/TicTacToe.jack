@@ -1,0 +1,62 @@
+// runs the game
+
+class TicTacToe{
+
+    field Board board;
+    field int p1_piece, p2_piece;
+    field int turn; // 1 -> p1, 2 -> p2
+
+    constructor TicTacToe new(){
+        let board = Board.new();
+
+        return this;
+
+    }
+
+    // main game loop
+    method void run(){
+        var boolean run;
+        var char key;
+        var int index;
+        let run = true;
+
+        let p1_piece = Keyboard.readInt("Which piece would you like to use (X-1, O-0): ");
+
+        if (p1_piece = 0) {let p2_piece = 1;}
+        if (p1_piece = 1) {let p2_piece = 0;}
+
+        let turn = 1;
+    
+        while(run){
+            
+            if (turn = 1){
+                let index = Keyboard.readInt("p1 place piece (0 - 9): ");
+                do board.PlacePiece(p1_piece, index);
+                let turn = 2;
+            }
+
+            if (turn = 2){
+                let index = Keyboard.readInt("p2 place piece (0 - 9): ");
+                do board.PlacePiece(p2_piece, index);
+                let turn = 1;
+            }
+
+            if (board.IsFull()){
+                let run = false;
+            }
+
+        }
+        return;
+
+    }
+
+    method void dispose(){
+        // deallicate board
+        do board.dispose();
+
+        // deallocate this game
+        do Memory.deAlloc(this);
+        return;
+    }
+
+}

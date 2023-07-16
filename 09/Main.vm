@@ -1,11 +1,11 @@
 function Main.main 1
-push constant 0
-call Piece.new 1
+call TicTacToe.new 0
 pop local 0
 push local 0
-push constant 0
-push constant 0
-call Piece.drawNaught 3
+call TicTacToe.run 1
+pop temp 0
+push local 0
+call TicTacToe.dispose 1
 pop temp 0
 push constant 0
 return

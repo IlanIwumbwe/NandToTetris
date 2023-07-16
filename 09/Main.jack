@@ -3,11 +3,15 @@
 // WORK IN PROGRESS
 
 class Main{
+  
     function void main() {
-        var Piece p1;
-        let p1 = Piece.new(0);
+        var TicTacToe game;
+        let game = TicTacToe.new();
 
-        do p1.drawNaught(0, 0);
+        do game.run();
+        do game.dispose();
+
         return;
     }
+
 }

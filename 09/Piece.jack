@@ -2,18 +2,25 @@
 
 class Piece{
 
-    field int type;  // 0 - naught, 1 - cross
+    field int type;  // 0 - naught, 1 - cross, 2 - null
     field int width, height;
     static int thickness;
 
     constructor Piece new(int t){
-        let width = 16;
-        let height = 16;
+        let width = 32;
+        let height = 32;
         let type = t;
-        let thickness = 4;
+        let thickness = 10;
 
         return this;
+    }
 
+    method int GetWidth(){
+        return width;
+    }
+
+    method int GetHeight(){
+        return height;
     }
 
     method void drawNaught(int x, int y){
@@ -27,6 +34,20 @@ class Piece{
         do Screen.drawCircle(x+ro, y+ro, ri);
         do Screen.setColor(true);
 
+        return;
+    }
+
+    method void drawCross(int x, int y){
+        do Screen.drawLine(x, y, x+width, y+height);
+        do Screen.setColor(true);
+        do Screen.drawLine(x, y+height, x+width, y);
+        do Screen.setColor(true);
+
+        return ;
+    }
+
+    method void dispose(){
+        do Memory.deAlloc(this);
         return;
     }
 

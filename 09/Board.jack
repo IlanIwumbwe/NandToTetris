@@ -1,0 +1,100 @@
+// board class
+
+class Board{
+
+    static int length;
+
+    field int board_x, board_y;
+    field int cell_size;
+    field Array bo;
+
+    field int piece_counter;
+
+    constructor Board new(){
+        let length = 9;
+
+        let board_x = 200;
+        let board_y = 20;
+        let cell_size = 50;
+
+        let bo = Array.new(length);
+
+        // draw board 
+        do drawBoard();
+        return this;
+
+    }
+
+    method int GetX(){
+        return board_x;
+    }
+
+    method int GetY(){
+        return board_y;
+    }
+
+    method int GetCellSize(){
+        return cell_size;
+    }
+
+    method boolean IsFull(){
+        return (piece_counter = length);
+
+    }
+
+    method void PlacePiece(int index, int piece_type){
+        var int x, y;
+        var Piece p;
+
+        let x = index - ((index / 3) * 3);  // reminder
+        let y = index / 3;
+        
+        if (piece_type = 0) {
+            let bo[index] = Piece.new(0);
+            let p = bo[index];
+            do p.drawNaught(board_x + (x * cell_size) + (cell_size / 2) - (p.GetWidth() / 2), board_y + (y * cell_size) + (cell_size / 2) - (p.GetWidth() / 2));
+        }
+
+        if (piece_type = 1) {
+            let bo[index] = Piece.new(1);
+            let p = bo[index];
+            do p.drawCross(board_x + (x * cell_size) + (cell_size / 2) - (p.GetWidth() / 2), board_y + (y * cell_size) + (cell_size / 2) - (p.GetWidth() / 2));
+        }
+
+        let piece_counter = piece_counter + 1;
+
+        return;
+    }
+
+    method void drawBoard() {
+        var int vert_index, hor_index, board_index;
+        let vert_index = 1;
+        let hor_index = 1;
+
+        while(~(vert_index = 3)){
+            do Screen.drawLine(board_x + (vert_index * cell_size), board_y, board_x + (vert_index * cell_size), board_y + (3 * cell_size));
+            do Screen.setColor(true);
+            let vert_index = vert_index + 1;
+        }
+
+        while(~(hor_index = 3)){
+            do Screen.drawLine(board_x, board_y + (hor_index * cell_size), board_x + (3 * cell_size), board_y + (hor_index * cell_size));
+            do Screen.setColor(true);
+            let hor_index = hor_index + 1;
+        }
+
+        return;
+
+    }
+
+    method void dispose(){
+        // deallocate all piece objects from memory
+        do Memory.deAlloc(bo);
+
+        // deallocate the board objects
+        do Memory.deAlloc(this);
+        return;
+    }
+
+}
+

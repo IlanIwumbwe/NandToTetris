@@ -1,0 +1,262 @@
+function Board.new 0
+push constant 5
+call Memory.alloc 1
+pop pointer 0
+push constant 9
+pop static 0
+push constant 200
+pop this 0
+push constant 20
+pop this 1
+push constant 50
+pop this 2
+push static 0
+call Array.new 1
+pop this 3
+push pointer 0
+call Board.drawBoard 1
+pop temp 0
+push pointer 0
+return
+function Board.GetX 0
+push argument 0
+pop pointer 0
+push this 0
+return
+function Board.GetY 0
+push argument 0
+pop pointer 0
+push this 1
+return
+function Board.GetCellSize 0
+push argument 0
+pop pointer 0
+push this 2
+return
+function Board.IsFull 0
+push argument 0
+pop pointer 0
+push this 4
+push static 0
+eq
+return
+function Board.PlacePiece 3
+push argument 0
+pop pointer 0
+push argument 1
+push argument 1
+push constant 3
+call Math.divide 2
+push constant 3
+call Math.multiply 2
+sub
+pop local 0
+push argument 1
+push constant 3
+call Math.divide 2
+pop local 1
+push argument 2
+push constant 0
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push argument 1
+push this 3
+add
+push constant 0
+call Piece.new 1
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push argument 1
+push this 3
+add
+pop pointer 1
+push that 0
+pop local 2
+push local 2
+push this 0
+push local 0
+push this 2
+call Math.multiply 2
+add
+push this 2
+push constant 2
+call Math.divide 2
+add
+push local 2
+call Piece.GetWidth 1
+push constant 2
+call Math.divide 2
+sub
+push this 1
+push local 1
+push this 2
+call Math.multiply 2
+add
+push this 2
+push constant 2
+call Math.divide 2
+add
+push local 2
+call Piece.GetWidth 1
+push constant 2
+call Math.divide 2
+sub
+call Piece.drawNaught 3
+pop temp 0
+label IF_FALSE0
+push argument 2
+push constant 1
+eq
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push argument 1
+push this 3
+add
+push constant 1
+call Piece.new 1
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push argument 1
+push this 3
+add
+pop pointer 1
+push that 0
+pop local 2
+push local 2
+push this 0
+push local 0
+push this 2
+call Math.multiply 2
+add
+push this 2
+push constant 2
+call Math.divide 2
+add
+push local 2
+call Piece.GetWidth 1
+push constant 2
+call Math.divide 2
+sub
+push this 1
+push local 1
+push this 2
+call Math.multiply 2
+add
+push this 2
+push constant 2
+call Math.divide 2
+add
+push local 2
+call Piece.GetWidth 1
+push constant 2
+call Math.divide 2
+sub
+call Piece.drawCross 3
+pop temp 0
+label IF_FALSE1
+push this 4
+push constant 1
+add
+pop this 4
+push local 2
+call Memory.deAlloc 1
+pop temp 0
+push constant 0
+return
+function Board.drawBoard 3
+push argument 0
+pop pointer 0
+push constant 1
+pop local 0
+push constant 1
+pop local 1
+label WHILE_EXP0
+push local 0
+push constant 3
+eq
+not
+not
+if-goto WHILE_END0
+push this 0
+push local 0
+push this 2
+call Math.multiply 2
+add
+push this 1
+push this 0
+push local 0
+push this 2
+call Math.multiply 2
+add
+push this 1
+push constant 3
+push this 2
+call Math.multiply 2
+add
+call Screen.drawLine 4
+pop temp 0
+push constant 0
+not
+call Screen.setColor 1
+pop temp 0
+push local 0
+push constant 1
+add
+pop local 0
+goto WHILE_EXP0
+label WHILE_END0
+label WHILE_EXP1
+push local 1
+push constant 3
+eq
+not
+not
+if-goto WHILE_END1
+push this 0
+push this 1
+push local 1
+push this 2
+call Math.multiply 2
+add
+push this 0
+push constant 3
+push this 2
+call Math.multiply 2
+add
+push this 1
+push local 1
+push this 2
+call Math.multiply 2
+add
+call Screen.drawLine 4
+pop temp 0
+push constant 0
+not
+call Screen.setColor 1
+pop temp 0
+push local 1
+push constant 1
+add
+pop local 1
+goto WHILE_EXP1
+label WHILE_END1
+push constant 0
+return
+function Board.dispose 0
+push argument 0
+pop pointer 0
+push this 3
+call Memory.deAlloc 1
+pop temp 0
+push pointer 0
+call Memory.deAlloc 1
+pop temp 0
+push constant 0
+return
