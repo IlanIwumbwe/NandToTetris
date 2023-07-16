@@ -31,13 +31,13 @@ class TicTacToe{
             
             if (turn = 1){
                 let index = Keyboard.readInt("p1 place piece (0 - 9): ");
-                do board.PlacePiece(p1_piece, index);
+                do board.PlacePiece(index, p1_piece);
                 let turn = 2;
             }
 
             if (turn = 2){
                 let index = Keyboard.readInt("p2 place piece (0 - 9): ");
-                do board.PlacePiece(p2_piece, index);
+                do board.PlacePiece(index, p2_piece);
                 let turn = 1;
             }
 

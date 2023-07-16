@@ -191,8 +191,8 @@ call String.appendChar 2
 call Keyboard.readInt 1
 pop local 2
 push this 0
-push this 1
 push local 2
+push this 1
 call Board.PlacePiece 3
 pop temp 0
 push constant 2
@@ -257,8 +257,8 @@ call String.appendChar 2
 call Keyboard.readInt 1
 pop local 2
 push this 0
-push this 2
 push local 2
+push this 2
 call Board.PlacePiece 3
 pop temp 0
 push constant 1
