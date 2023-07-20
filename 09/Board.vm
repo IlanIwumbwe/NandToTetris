@@ -14,7 +14,10 @@ push static 0
 call Array.new 1
 pop this 3
 push pointer 0
-call Board.drawBoard 1
+call Board.ResetBoard 1
+pop temp 0
+push pointer 0
+call Board.DrawBoard 1
 pop temp 0
 push pointer 0
 return
@@ -39,6 +42,265 @@ pop pointer 0
 push this 4
 push static 0
 eq
+return
+function Board.ResetBoard 1
+push argument 0
+pop pointer 0
+push constant 0
+pop local 0
+label WHILE_EXP0
+push local 0
+push static 0
+eq
+not
+not
+if-goto WHILE_END0
+push local 0
+push this 3
+add
+push constant 0
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push local 0
+push constant 1
+add
+pop local 0
+goto WHILE_EXP0
+label WHILE_END0
+push constant 0
+return
+function Board.IsCellUsed 0
+push argument 0
+pop pointer 0
+push argument 1
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+return
+function Board.CheckWin 0
+push argument 0
+pop pointer 0
+push constant 0
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+push constant 1
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+and
+push constant 2
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+and
+push constant 3
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+push constant 4
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+and
+push constant 5
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+and
+or
+push constant 6
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+push constant 7
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+and
+push constant 8
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+and
+or
+push constant 0
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+push constant 3
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+and
+push constant 6
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+and
+or
+push constant 1
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+push constant 4
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+and
+push constant 7
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+and
+or
+push constant 2
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+push constant 5
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+and
+push constant 8
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+and
+or
+push constant 0
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+push constant 4
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+and
+push constant 8
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+and
+or
+push constant 2
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+push constant 4
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+and
+push constant 6
+push this 3
+add
+pop pointer 1
+push that 0
+push constant 0
+eq
+not
+and
+or
 return
 function Board.PlacePiece 3
 push argument 0
@@ -167,7 +429,7 @@ add
 pop this 4
 push constant 0
 return
-function Board.drawBoard 3
+function Board.DrawBoard 3
 push argument 0
 pop pointer 0
 push constant 1

@@ -30,18 +30,26 @@ class TicTacToe{
         while(run){
             
             if (turn = 1){
-                let index = Keyboard.readInt("p1 place piece (0 - 9): ");
-                do board.PlacePiece(index, p1_piece);
+                let index = Keyboard.readInt("p1 place piece (0 - 8): ");
+
+                if (~board.IsCellUsed(index) & (index < 9)){
+                    do board.PlacePiece(index, p1_piece);
+                }        
+
                 let turn = 2;
             }
 
             if (turn = 2){
-                let index = Keyboard.readInt("p2 place piece (0 - 9): ");
-                do board.PlacePiece(index, p2_piece);
+                let index = Keyboard.readInt("p2 place piece (0 - 8): ");
+
+                if(~board.IsCellUsed(index) & (index < 9)){
+                    do board.PlacePiece(index, p2_piece);
+                }
+
                 let turn = 1;
             }
 
-            if (board.IsFull()){
+            if (board.IsFull() | board.CheckWin()){
                 let run = false;
             }
 

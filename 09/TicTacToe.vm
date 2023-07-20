@@ -180,7 +180,7 @@ push constant 45
 call String.appendChar 2
 push constant 32
 call String.appendChar 2
-push constant 57
+push constant 56
 call String.appendChar 2
 push constant 41
 call String.appendChar 2
@@ -192,18 +192,30 @@ call Keyboard.readInt 1
 pop local 2
 push this 0
 push local 2
+call Board.IsCellUsed 2
+not
+push local 2
+push constant 9
+lt
+and
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push this 0
+push local 2
 push this 1
 call Board.PlacePiece 3
 pop temp 0
+label IF_FALSE3
 push constant 2
 pop this 3
 label IF_FALSE2
 push this 3
 push constant 2
 eq
-if-goto IF_TRUE3
-goto IF_FALSE3
-label IF_TRUE3
+if-goto IF_TRUE4
+goto IF_FALSE4
+label IF_TRUE4
 push constant 24
 call String.new 1
 push constant 112
@@ -246,7 +258,7 @@ push constant 45
 call String.appendChar 2
 push constant 32
 call String.appendChar 2
-push constant 57
+push constant 56
 call String.appendChar 2
 push constant 41
 call String.appendChar 2
@@ -258,20 +270,35 @@ call Keyboard.readInt 1
 pop local 2
 push this 0
 push local 2
+call Board.IsCellUsed 2
+not
+push local 2
+push constant 9
+lt
+and
+if-goto IF_TRUE5
+goto IF_FALSE5
+label IF_TRUE5
+push this 0
+push local 2
 push this 2
 call Board.PlacePiece 3
 pop temp 0
+label IF_FALSE5
 push constant 1
 pop this 3
-label IF_FALSE3
+label IF_FALSE4
 push this 0
 call Board.IsFull 1
-if-goto IF_TRUE4
-goto IF_FALSE4
-label IF_TRUE4
+push this 0
+call Board.CheckWin 1
+or
+if-goto IF_TRUE6
+goto IF_FALSE6
+label IF_TRUE6
 push constant 0
 pop local 0
-label IF_FALSE4
+label IF_FALSE6
 goto WHILE_EXP0
 label WHILE_END0
 push constant 0

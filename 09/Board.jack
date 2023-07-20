@@ -19,8 +19,11 @@ class Board{
 
         let bo = Array.new(length);
 
+        // reset board
+        do ResetBoard();
+
         // draw board 
-        do drawBoard();
+        do DrawBoard();
         return this;
 
     }
@@ -39,6 +42,32 @@ class Board{
 
     method boolean IsFull(){
         return (piece_counter = length);
+
+    }
+
+    method void ResetBoard(){
+        var int index;
+        let index = 0;
+
+        while(~(index = length)){
+            let bo[index] = 0;
+            let index = index + 1;
+        }
+    
+        return;
+
+    }
+
+    method boolean IsCellUsed(int index){
+        return ~(bo[index] = 0);
+
+    }
+
+    method boolen CheckWin(){
+        // check horizontally, vertically and diagonally
+        return (~(bo[0] = 0) & ~(bo[1] = 0) & ~(bo[2] = 0)) | (~(bo[3] = 0) & ~(bo[4] = 0) & ~(bo[5] = 0)) | (~(bo[6] = 0) & ~(bo[7] = 0) & ~(bo[8] = 0)) |
+        (~(bo[0] = 0) & ~(bo[3] = 0) & ~(bo[6] = 0)) | (~(bo[1] = 0) & ~(bo[4] = 0) & ~(bo[7] = 0)) | (~(bo[2] = 0) & ~(bo[5] = 0) & ~(bo[8] = 0)) |
+        (~(bo[0] = 0) & ~(bo[4] = 0) & ~(bo[8] = 0)) | (~(bo[2] = 0) & ~(bo[4] = 0) & ~(bo[6] = 0));
 
     }
 
@@ -66,7 +95,7 @@ class Board{
         return;
     }
 
-    method void drawBoard() {
+    method void DrawBoard() {
         var int vert_index, hor_index, board_index;
         let vert_index = 1;
         let hor_index = 1;
