@@ -154,9 +154,9 @@ void Tokeniser::SaveTokens(std::string input_path){
             Advance();
         }
 
-        std::cout << output_path << std::endl;
-
         output_file << "</tokens>";
+
+        std::cout << output_path << std::endl;
     }
 }
 
