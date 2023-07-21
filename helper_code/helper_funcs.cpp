@@ -24,15 +24,32 @@ std::vector<std::string> GetFilesToParse(std::string &path, std::string input_ex
     return paths;
 }
 
-std::string GetOutputPath(std::string &input_path, std::string output_extension){
+std::vector<std::string> GetOutputPaths(std::string &input_path, std::string output_extension, std::string compiler_flag){
+    std::vector<std::string> output_paths;
     fs::path path(input_path);
 
     if (fs::is_directory(path)){
-        return input_path + "\\" + path.filename().string() + output_extension;   
+        if (compiler_flag != ""){
+            // get all .jack entries and use each file name to create .xml file
+            output_extension = (compiler_flag == "T")? "T.xml" : ".xml";
+
+            for (const auto& entry : fs::directory_iterator(input_path)){
+                if(entry.path().extension() == ".jack"){
+                    std::regex pattern(R"(\.jack)");
+                    output_paths.push_back(std::regex_replace(entry.path().string(), pattern, output_extension));
+
+                }
+            }
+        } else {
+            output_paths.push_back(input_path + "\\" + path.filename().string() + output_extension);   
+        }
+    
     }
     else{
-        return path.replace_extension(output_extension).string();
+        output_paths.push_back(path.replace_extension(output_extension).string());
     }
+
+    return output_paths;
 }
 
 std::vector<std::string> splitString(std::string input_string, std::string delimeter){

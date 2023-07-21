@@ -9,7 +9,8 @@ int main()
 
     std::cout << "Enter path of Jack file: ";
     std::cin >> FILE_PATH;
-
+    
+    
     std::vector<std::string> paths = GetFilesToParse(FILE_PATH, ".jack");
 
     Tokeniser tk;
@@ -17,11 +18,7 @@ int main()
     for (const auto& path : paths){
         tk.SetFilePath(path);
         tk.GetTokens();
-
-        while(tk.HasMoreTokens()){
-            std::cout << tk.GetCurrentToken() << std::endl;
-            tk.Advance();
-        }
+        tk.SaveTokens(FILE_PATH);
 
     }
 

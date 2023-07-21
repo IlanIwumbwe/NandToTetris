@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <map>
 
 class Tokeniser{
     public:
@@ -11,6 +12,7 @@ class Tokeniser{
         void Advance();
         std::string GetCurrentToken();
         std::string GetTokenType();
+        void SaveTokens(std::string input_path);
 
     private:
         std::string current_file_path;
@@ -28,5 +30,7 @@ class Tokeniser{
         std::vector<std::string> tokens;
         int token_pointer;
 
-
+        // XML tags for lexicon
+        std::map<std::string, std::string> xml_tags;
+        
 };

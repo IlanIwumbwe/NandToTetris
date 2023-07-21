@@ -3,6 +3,7 @@
 #include <vector>
 #include <fstream>
 #include <regex>
+#include <map>
 #include "./helper_funcs.hpp"
 #include "./Lexer.hpp"
 
@@ -19,8 +20,13 @@ Tokeniser::Tokeniser(){
     ignore = false;
 
     current_file_path = "";
-    current_token = "";
     token_pointer = 0;
+
+    xml_tags["KEYWORD"] = "<keyword>_</keyword>";
+    xml_tags["SYMBOL"] = "<symbol>_</symbol>";
+    xml_tags["INT_CONST"] = "<integerConstant>_</integerConstant>";
+    xml_tags["STRING_CONST"] = "<stringConstant>_</stringConstant>";
+    xml_tags["IDENTIFIER"] = "<identifier>_</identifier>";
 
 }
 
@@ -112,7 +118,45 @@ std::string Tokeniser::GetTokenType(){
     } else if (std::regex_match(current_token, id_pattern)){
         return "IDENTIFIER";
     } else {
-        return "Not in Jack Lexicon";
+        return "unknown";
+    }
+}
+
+void Tokeniser::SaveTokens(std::string input_path){
+    // T flag to show that the output path must is a file containing tokens not parse tree
+    for(const auto& output_path : GetOutputPaths(input_path, ".xml", "T")){
+        std::ofstream output_file(output_path);
+        
+        output_file << "<tokens>" << std::endl;
+
+        while(HasMoreTokens()){
+            if (GetCurrentToken() != ""){
+                std::string xml = xml_tags[GetTokenType()];
+                std::regex pattern("_");
+                
+                std::string token = GetCurrentToken();
+
+                if (token == "<"){
+                    token = "&lt;";
+                } else if (token == ">"){
+                    token = "&gt;";
+                } else if (token == "\""){
+                    token = "&quot;";
+                } else if (token == "&"){
+                    token = "&amp;";
+                } else {
+                    token = token;
+                }
+
+                output_file << std::regex_replace(xml, pattern, " " + token + " ") << std::endl;
+            }
+            
+            Advance();
+        }
+
+        std::cout << output_path << std::endl;
+
+        output_file << "</tokens>";
     }
 }
 

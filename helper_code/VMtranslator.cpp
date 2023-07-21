@@ -422,13 +422,13 @@ int main()
 
     VMtranslator vmt;
     
-    std::string output_path = GetOutputPath(FILE_PATH, ".asm");
+    for (const auto& output_path : GetOutputPaths(FILE_PATH, ".asm", "")){
+        std::ofstream outfile(output_path);
 
-    std::ofstream outfile(output_path);
+        vmt.Translate(paths, outfile);
 
-    vmt.Translate(paths, outfile);
-
-    std::cout << "Done writing assembly to: " << output_path << std::endl;
+        std::cout << "Done writing assembly to: " << output_path << std::endl;
+    }
 
     return 0;
 }
