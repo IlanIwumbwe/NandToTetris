@@ -1,6 +1,17 @@
 #include <iostream>
 #include "./Lexer.hpp"
 #include "./helper_funcs.hpp"
+#include "./Compiler.hpp"
+
+Compiler::Compiler(std::string output_path){
+    output_file_path = output_path;
+}
+
+
+
+
+
+
 
 
 int main()
@@ -18,8 +29,7 @@ int main()
     for (const auto& path : paths){
         tk.SetFilePath(path);
         tk.GetTokens();
-        tk.SaveTokens(FILE_PATH);
-
+        tk.SaveTokens(path);
     }
 
 }

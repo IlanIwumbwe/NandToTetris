@@ -29,24 +29,15 @@ std::vector<std::string> GetOutputPaths(std::string &input_path, std::string out
     fs::path path(input_path);
 
     if (fs::is_directory(path)){
+        output_paths.push_back(input_path + "\\" + path.filename().string() + output_extension);   
+        
+    } else {
         if (compiler_flag != ""){
-            // get all .jack entries and use each file name to create .xml file
-            output_extension = (compiler_flag == "T")? "T.xml" : ".xml";
-
-            for (const auto& entry : fs::directory_iterator(input_path)){
-                if(entry.path().extension() == ".jack"){
-                    std::regex pattern(R"(\.jack)");
-                    output_paths.push_back(std::regex_replace(entry.path().string(), pattern, output_extension));
-
-                }
-            }
-        } else {
-            output_paths.push_back(input_path + "\\" + path.filename().string() + output_extension);   
+            output_extension = (compiler_flag == "T") ? "T.xml" : ".xml";
         }
-    
-    }
-    else{
-        output_paths.push_back(path.replace_extension(output_extension).string());
+
+        std::regex pattern(R"(.jack)");
+        output_paths.push_back(std::regex_replace(path.string(), pattern, output_extension));
     }
 
     return output_paths;

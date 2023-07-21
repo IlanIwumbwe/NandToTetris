@@ -12,6 +12,7 @@ class Tokeniser{
         void Advance();
         std::string GetCurrentToken();
         std::string GetTokenType();
+        std::string GetTokenXML(std::string tkn);
         void SaveTokens(std::string input_path);
 
     private:

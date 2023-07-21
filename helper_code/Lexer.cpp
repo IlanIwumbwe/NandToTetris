@@ -21,6 +21,7 @@ Tokeniser::Tokeniser(){
 
     current_file_path = "";
     token_pointer = 0;
+    current_token = "";
 
     xml_tags["KEYWORD"] = "<keyword>_</keyword>";
     xml_tags["SYMBOL"] = "<symbol>_</symbol>";
@@ -37,6 +38,10 @@ void Tokeniser::SetFilePath(std::string current_path){
 void Tokeniser::GetTokens(){
     std::ifstream infile;
     infile.open(current_file_path);
+
+    // reset token buffer in case new file path has been passed
+    token_pointer = 0;
+    tokens = {};
 
     std::vector<std::string> instructions;
 
@@ -81,19 +86,22 @@ void Tokeniser::GetTokens(){
         for(; iter != end; ++iter){
             std::smatch match = *iter;
             tokens.push_back(match.str());
-            // std::cout << match.str() << std::endl;
+            //std::cout << match.str() << std::endl;
         }
         
     }
 
+    current_token = tokens[token_pointer];
+
 }
 
 bool Tokeniser::HasMoreTokens(){
-    return (tokens.size() != token_pointer);
+    return (token_pointer < tokens.size());
 }
 
 void Tokeniser::Advance(){
-    current_token = tokens[token_pointer++];
+    token_pointer++;
+    current_token = tokens[token_pointer];
 }
 
 std::string Tokeniser::GetCurrentToken(){
@@ -122,6 +130,28 @@ std::string Tokeniser::GetTokenType(){
     }
 }
 
+std::string Tokeniser::GetTokenXML(std::string tkn){
+
+    if (tkn == "<"){
+        return " &lt; ";
+    } else if (tkn == ">"){
+        return " &gt; ";
+    } else if (tkn == "\""){
+        return " &quot; ";
+    } else if (tkn == "&"){
+        return " &amp; ";
+    } else {
+        std::regex str_const_pattern(string_constants);
+
+        if (std::regex_match(tkn, str_const_pattern)){
+            tkn.erase(std::remove(tkn.begin(), tkn.end(), '\"'), tkn.end());
+        }
+
+        return " "  + tkn + " ";
+        
+    }
+}
+
 void Tokeniser::SaveTokens(std::string input_path){
     // T flag to show that the output path must is a file containing tokens not parse tree
     for(const auto& output_path : GetOutputPaths(input_path, ".xml", "T")){
@@ -129,34 +159,16 @@ void Tokeniser::SaveTokens(std::string input_path){
         
         output_file << "<tokens>" << std::endl;
 
-        while(HasMoreTokens()){
-            if (GetCurrentToken() != ""){
-                std::string xml = xml_tags[GetTokenType()];
-                std::regex pattern("_");
-                
-                std::string token = GetCurrentToken();
-
-                if (token == "<"){
-                    token = "&lt;";
-                } else if (token == ">"){
-                    token = "&gt;";
-                } else if (token == "\""){
-                    token = "&quot;";
-                } else if (token == "&"){
-                    token = "&amp;";
-                } else {
-                    token = token;
-                }
-
-                output_file << std::regex_replace(xml, pattern, " " + token + " ") << std::endl;
-            }
-            
-            Advance();
+        for (auto& token : tokens){
+            current_token = token;
+            std::string xml = xml_tags[GetTokenType()];
+            std::regex pattern("_");
+        
+            output_file << std::regex_replace(xml, pattern, GetTokenXML(current_token)) << std::endl;
         }
+        
+        output_file << "</tokens>" << std::endl;
 
-        output_file << "</tokens>";
-
-        std::cout << output_path << std::endl;
     }
 }
 
