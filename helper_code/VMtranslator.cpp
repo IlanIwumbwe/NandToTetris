@@ -43,11 +43,11 @@ class Parser
                         // comment in line
                         std::vector<std::string> parts = splitString(line, "//");
                                     
-                        instructions.push_back(removeTrailingWhitespace(parts[0]));
+                        instructions.push_back(removeWhiteSpace(parts[0]));
                 
                     } else if (line.find("//") == std::string::npos) {
                         // no comment in line
-                        instructions.push_back(removeTrailingWhitespace(line));
+                        instructions.push_back(removeWhiteSpace(line));
                     }
                 }
             }
@@ -418,7 +418,7 @@ int main()
     std::cout << "Enter path of VM file: ";
     std::cin >> FILE_PATH;
 
-    std::vector<std::string> paths = GetFilesToParse(FILE_PATH);
+    std::vector<std::string> paths = GetFilesToParse(FILE_PATH, ".vm");
 
     VMtranslator vmt;
     

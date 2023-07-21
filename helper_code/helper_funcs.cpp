@@ -1,11 +1,12 @@
 #include <vector>
 #include <filesystem>
 #include <string>
+#include <regex>
 #include "./helper_funcs.hpp"
 
 namespace fs = std::filesystem;
 
-std::vector<std::string> GetFilesToParse(std::string &path){
+std::vector<std::string> GetFilesToParse(std::string &path, std::string input_extension){
     std::vector<std::string> paths;
 
     if (!fs::is_directory(path)){
@@ -14,7 +15,7 @@ std::vector<std::string> GetFilesToParse(std::string &path){
     } else{
         for (const auto& entry : fs::directory_iterator(path))
         {   
-            if (entry.path().extension() == ".vm"){
+            if (entry.path().extension() == input_extension){
                 paths.push_back(entry.path().string());
             }
         }
@@ -49,21 +50,9 @@ std::vector<std::string> splitString(std::string input_string, std::string delim
 
 }
 
-std::string removeTrailingWhitespace(std::string str){
- 
-    // Remove trailing whitespace
-    std::string_view strView(str);
+std::string removeWhiteSpace(std::string str){
+    std::regex pattern(R"(^\s+|\s+$)");
 
-    size_t end = strView.find_last_not_of(" \t\r\n");
-
-    if (end != std::string_view::npos)
-    {
-        str.resize(end + 1);
-    }
-    else
-    {
-        str.clear();
-    }
-
-    return str;
+    return std::regex_replace(str, pattern, "");
 }
+
