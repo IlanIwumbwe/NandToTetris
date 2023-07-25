@@ -1,10 +1,13 @@
 #include <vector>
 #include <filesystem>
 #include <string>
+#include <map>
 #include <regex>
 #include "./helper_funcs.hpp"
 
 namespace fs = std::filesystem;
+
+XML_TAGS xml_tags;
 
 std::vector<std::string> GetFilesToParse(std::string &path, std::string input_extension){
     std::vector<std::string> paths;
@@ -24,12 +27,11 @@ std::vector<std::string> GetFilesToParse(std::string &path, std::string input_ex
     return paths;
 }
 
-std::vector<std::string> GetOutputPaths(std::string &input_path, std::string output_extension, std::string compiler_flag){
-    std::vector<std::string> output_paths;
+std::string GetOutputPath(std::string &input_path, std::string output_extension, std::string compiler_flag){
     fs::path path(input_path);
 
     if (fs::is_directory(path)){
-        output_paths.push_back(input_path + "\\" + path.filename().string() + output_extension);   
+        return input_path + "\\" + path.filename().string() + output_extension;   
         
     } else {
         if (compiler_flag != ""){
@@ -37,25 +39,22 @@ std::vector<std::string> GetOutputPaths(std::string &input_path, std::string out
         }
 
         std::regex pattern(R"(.jack)");
-        output_paths.push_back(std::regex_replace(path.string(), pattern, output_extension));
+        return std::regex_replace(path.string(), pattern, output_extension);
     }
-
-    return output_paths;
 }
 
-std::vector<std::string> splitString(std::string input_string, std::string delimeter){
+std::vector<std::string> splitString(const std::string& input, const std::string& delimiter) {
+    std::vector<std::string> result;
+    std::regex regexDelimiter(delimiter);
+    std::sregex_token_iterator iterator(input.begin(), input.end(), regexDelimiter, -1);
 
-    std::vector<std::string> tokens;
-    std::stringstream ss(input_string);
-    std::string token;
-
-    while (std::getline(ss, token, delimeter[0]))
-    {
-        tokens.push_back(token);
+    // Use sregex_token_iterator to split the string and add tokens to the result vector
+    while (iterator != std::sregex_token_iterator()) {
+        result.push_back(*iterator);
+        ++iterator;
     }
 
-    return tokens;
-
+    return result;
 }
 
 std::string removeWhiteSpace(std::string str){
@@ -64,3 +63,25 @@ std::string removeWhiteSpace(std::string str){
     return std::regex_replace(str, pattern, "");
 }
 
+std::string GetTokenXML(std::string tkn, std::string tkn_type){
+
+    std::string xml = xml_tags.GetXmlTag(tkn_type);
+    std::regex pattern("_");
+    
+    if (tkn == "<"){
+        return std::regex_replace(xml, pattern, " &lt; ");
+    } else if (tkn == ">"){
+        return std::regex_replace(xml, pattern, " &gt; ");
+    } else if (tkn == "\""){
+        return std::regex_replace(xml, pattern, " &quot; ");
+    } else if (tkn == "&"){
+        return std::regex_replace(xml, pattern, " &amp; ");
+    } else {
+        std::regex str_const_pattern(R"("[^\n\"]+")");
+
+        if (std::regex_match(tkn, str_const_pattern)){
+            tkn.erase(std::remove(tkn.begin(), tkn.end(), '\"'), tkn.end());
+        }
+        return std::regex_replace(xml, pattern, " "  + tkn + " ");
+    }
+}

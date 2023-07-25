@@ -7,13 +7,17 @@ class Tokeniser{
     public:
         Tokeniser();
         void SetFilePath(std::string current_path);
-        void GetTokens();
+        void Tokenise();
+        std::vector<std::string> GetTokens();
         bool HasMoreTokens();
         void Advance();
+        std::string Peek();
+        std::string Previous();
         std::string GetCurrentToken();
         std::string GetTokenType();
-        std::string GetTokenXML(std::string tkn);
+        std::string GetSpecificType(std::string tkn);
         void SaveTokens(std::string input_path);
+        void InitialiseCurrToken();
 
     private:
         std::string current_file_path;
@@ -27,11 +31,18 @@ class Tokeniser{
         std::string string_constants;
         std::string identifiers;
 
+        // additional patterns
+        std::string classVarDec;
+        std::string type;
+        std::string subType;
+        std::string subRetType;
+        std::string keywordConst;
+        std::string statements;
+        std::string operators;
+        std::string unary_ops;
+
         // all tokens
         std::vector<std::string> tokens;
         int token_pointer;
-
-        // XML tags for lexicon
-        std::map<std::string, std::string> xml_tags;
         
 };

@@ -15,7 +15,16 @@ Tokeniser::Tokeniser(){
     int_constants = R"([0-32767])";
     string_constants = R"("[^\n\"]+")";
     identifiers = R"([a-zA-Z_]\w*)";
-    
+
+    // additional patterns
+    classVarDec = R"(static|field)";
+    type = R"(int|char|boolean|)" + identifiers;
+    subType = R"(constructor|function|method)";
+    subRetType = R"(void|)" + type;
+    keywordConst = R"(true|false|null|this)";
+    statements = R"(let|if|while|do|return)";
+    operators = R"(\+|-|\*|&|\||\/|<|>|=)";
+
     // variable instantiation
     ignore = false;
 
@@ -23,23 +32,38 @@ Tokeniser::Tokeniser(){
     token_pointer = 0;
     current_token = "";
 
-    xml_tags["KEYWORD"] = "<keyword>_</keyword>";
-    xml_tags["SYMBOL"] = "<symbol>_</symbol>";
-    xml_tags["INT_CONST"] = "<integerConstant>_</integerConstant>";
-    xml_tags["STRING_CONST"] = "<stringConstant>_</stringConstant>";
-    xml_tags["IDENTIFIER"] = "<identifier>_</identifier>";
-
 }
 
 void Tokeniser::SetFilePath(std::string current_path){
     current_file_path = current_path;
 }
 
-void Tokeniser::GetTokens(){
+std::vector<std::string> Tokeniser::GetTokens(){
+    return tokens;
+}
+
+std::string Tokeniser::Peek(){
+    if (HasMoreTokens()) {
+        return tokens[token_pointer + 1];
+    } else {
+        return "NULL";
+    }
+}
+
+std::string Tokeniser::Previous(){
+    return tokens[token_pointer - 1];
+}
+
+
+void Tokeniser::InitialiseCurrToken(){
+    current_token = tokens[token_pointer];
+}
+
+void Tokeniser::Tokenise(){
     std::ifstream infile;
     infile.open(current_file_path);
 
-    // reset token buffer in case new file path has been passed
+    // reset token buffer
     token_pointer = 0;
     tokens = {};
 
@@ -61,9 +85,11 @@ void Tokeniser::GetTokens(){
                 ignore = (line.find("*/") == std::string::npos);
             } else if (line.find("*/") != std::string::npos){
                 ignore = false;
-            } else if ((line.find("//") != std::string::npos) && (line.find("//") != 0 && ignore != true)) {
+            } else if ((line.find("//") != std::string::npos) && (line.find("//") != 0 && ignore == false)) {
                 // comment in line
                 std::vector<std::string> parts = splitString(line, "//");
+
+                std::cout << parts[0] << std::endl;
                             
                 instructions.push_back(removeWhiteSpace(parts[0]));
         
@@ -91,8 +117,6 @@ void Tokeniser::GetTokens(){
         
     }
 
-    current_token = tokens[token_pointer];
-
 }
 
 bool Tokeniser::HasMoreTokens(){
@@ -101,11 +125,46 @@ bool Tokeniser::HasMoreTokens(){
 
 void Tokeniser::Advance(){
     token_pointer++;
-    current_token = tokens[token_pointer];
+
+    if (token_pointer == tokens.size()){
+        current_token = tokens[token_pointer-1];
+    }
+    else{
+        current_token = tokens[token_pointer];
+    }
+    
 }
 
 std::string Tokeniser::GetCurrentToken(){
     return current_token;
+}
+
+std::string Tokeniser::GetSpecificType(std::string tkn){
+    std::regex classVarDecP(classVarDec);
+    std::regex typeP(type);
+    std::regex subTypeP(subType);
+    std::regex subRetTypeP(subRetType);
+    std::regex keywordConstP(keywordConst);
+    std::regex statementsP(statements);
+    std::regex operatorsP(operators);
+
+    if (std::regex_match(tkn, classVarDecP)){
+        return "CLASSVARDEC";
+    } else if (std::regex_match(tkn, statementsP)){
+        return "STATEMENT";
+    } else if (std::regex_match(tkn, subTypeP)){
+        return "SUBTYPE";
+    } else if (std::regex_match(tkn, keywordConstP)){
+        return "KEYWORD_CONST";
+    } else if (std::regex_match(tkn, typeP)){
+        return "TYPE";
+    } else if (std::regex_match(tkn, subRetTypeP)){
+        return "SUBRETTYPE";
+    } else if (std::regex_match(tkn, operatorsP)){
+        return "OPERATOR";
+    } else {
+        return "unknown";
+    }
 }
 
 std::string Tokeniser::GetTokenType(){
@@ -128,48 +187,26 @@ std::string Tokeniser::GetTokenType(){
     } else {
         return "unknown";
     }
-}
-
-std::string Tokeniser::GetTokenXML(std::string tkn){
-
-    if (tkn == "<"){
-        return " &lt; ";
-    } else if (tkn == ">"){
-        return " &gt; ";
-    } else if (tkn == "\""){
-        return " &quot; ";
-    } else if (tkn == "&"){
-        return " &amp; ";
-    } else {
-        std::regex str_const_pattern(string_constants);
-
-        if (std::regex_match(tkn, str_const_pattern)){
-            tkn.erase(std::remove(tkn.begin(), tkn.end(), '\"'), tkn.end());
-        }
-
-        return " "  + tkn + " ";
-        
-    }
+    
 }
 
 void Tokeniser::SaveTokens(std::string input_path){
     // T flag to show that the output path must is a file containing tokens not parse tree
-    for(const auto& output_path : GetOutputPaths(input_path, ".xml", "T")){
-        std::ofstream output_file(output_path);
-        
-        output_file << "<tokens>" << std::endl;
+    std::string output_path = GetOutputPath(input_path, ".xml", "T");
 
-        for (auto& token : tokens){
-            current_token = token;
-            std::string xml = xml_tags[GetTokenType()];
-            std::regex pattern("_");
-        
-            output_file << std::regex_replace(xml, pattern, GetTokenXML(current_token)) << std::endl;
-        }
-        
-        output_file << "</tokens>" << std::endl;
+    std::ofstream output_file(output_path);
+    
+    output_file << "<tokens>" << std::endl;
 
+    for (auto& token : tokens){
+        current_token = token;
+    
+        output_file << GetTokenXML(GetCurrentToken(), GetTokenType()) << std::endl;
     }
+    
+    output_file << "</tokens>" << std::endl;
+
+    std::cout << "Done saving tokens to: " << output_path << std::endl;
 }
 
 
