@@ -74,7 +74,6 @@ void Compiler::CompileTerm(std::ofstream& output_file){
         CompileExpression(output_file);
         output_file << Process(")", "", "") << std::endl;
     } else if (tokeniser.GetCurrentToken() == "-" || tokeniser.GetCurrentToken() == "~"){
-        std::cout << tokeniser.GetCurrentToken() << "-" << tokeniser.GetTokenType();
         output_file << Process(tokeniser.GetCurrentToken(), "", "") << std::endl;
         CompileTerm(output_file);
     } else if (tokeniser.Peek() == "(" || tokeniser.Peek() == "."){
@@ -214,8 +213,6 @@ void Compiler::CompileExpression(std::ofstream& output_file){
 int Compiler::CompileExpressionList(std::ofstream& output_file){
     int expressions = 0;
     output_file << "<expressionList>" << std::endl;
-
-    std::cout << tokeniser.GetSpecificType(tokeniser.GetCurrentToken()) << std::endl;
 
     if (StartOfTerm()){
         // there's at least one expression if true
