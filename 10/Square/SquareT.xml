@@ -152,7 +152,7 @@
 <identifier> size </identifier>
 <symbol> ) </symbol>
 <symbol> &lt; </symbol>
-<integerConstant> 2 </integerConstant>
+<integerConstant> 254 </integerConstant>
 <symbol> ) </symbol>
 <symbol> &amp; </symbol>
 <symbol> ( </symbol>
@@ -162,8 +162,7 @@
 <identifier> size </identifier>
 <symbol> ) </symbol>
 <symbol> &lt; </symbol>
-<integerConstant> 1 </integerConstant>
-<integerConstant> 0 </integerConstant>
+<integerConstant> 510 </integerConstant>
 <symbol> ) </symbol>
 <symbol> ) </symbol>
 <symbol> { </symbol>
@@ -318,7 +317,7 @@
 <identifier> size </identifier>
 <symbol> ) </symbol>
 <symbol> &lt; </symbol>
-<integerConstant> 2 </integerConstant>
+<integerConstant> 254 </integerConstant>
 <symbol> ) </symbol>
 <symbol> { </symbol>
 <keyword> do </keyword>
@@ -486,8 +485,7 @@
 <identifier> size </identifier>
 <symbol> ) </symbol>
 <symbol> &lt; </symbol>
-<integerConstant> 1 </integerConstant>
-<integerConstant> 0 </integerConstant>
+<integerConstant> 510 </integerConstant>
 <symbol> ) </symbol>
 <symbol> { </symbol>
 <keyword> do </keyword>

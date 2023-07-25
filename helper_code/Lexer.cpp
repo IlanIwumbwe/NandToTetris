@@ -12,7 +12,7 @@ Tokeniser::Tokeniser(){
     // regex for the Jack Grammar
     keywords = R"(class|int|constructor|function|method|field|static|var|char|boolean|void|true|false|null|this|let|do|if|else|while|return)";
     symbols = R"(\{|\}|\(|\)|\[|\]|\.|,|;|\+|-|\*|\/|&|\||<|>|=|~)";
-    int_constants = R"([0-32767])";
+    int_constants = R"([0-9]+)";
     string_constants = R"("[^\n\"]+")";
     identifiers = R"([a-zA-Z_]\w*)";
 
@@ -88,9 +88,7 @@ void Tokeniser::Tokenise(){
             } else if ((line.find("//") != std::string::npos) && (line.find("//") != 0 && ignore == false)) {
                 // comment in line
                 std::vector<std::string> parts = splitString(line, "//");
-
-                std::cout << parts[0] << std::endl;
-                            
+                    
                 instructions.push_back(removeWhiteSpace(parts[0]));
         
             } else if (line.find("//") == std::string::npos && ignore != true) {
