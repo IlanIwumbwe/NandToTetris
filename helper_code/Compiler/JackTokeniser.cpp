@@ -6,27 +6,27 @@
 #include <map>
 #include "./Lexer.hpp"
 #include "./helper_funcs.hpp"
-#include "./Compiler.hpp"
+#include "./JackTokeniser.hpp"
 
-Compiler::Compiler(){
+CompilerXML::CompilerXML(){
 
 }
 
-void Compiler::SetTokeniser(Tokeniser tk){
+void CompilerXML::SetTokeniser(Tokeniser tk){
     tokeniser = tk;
 }
 
-void Compiler::SaveSubName(std::string sub_nme){
+void CompilerXML::SaveSubName(std::string sub_nme){
     subroutine_names.push_back(sub_nme);
 }
 
-bool Compiler::NameInSubs(std::string name){
+bool CompilerXML::NameInSubs(std::string name){
     auto it = std::find(subroutine_names.begin(), subroutine_names.end(), name);
 
     return it != subroutine_names.end();
 }
 
-void Compiler::CompileSubroutineCall(std::ofstream& output_file){
+void CompilerXML::CompileSubroutineCall(std::ofstream& output_file){
     if(tokeniser.Peek() == "."){
     // calling subroutine from object
         if(NameInSubs(tokeniser.GetCurrentToken())){
@@ -48,13 +48,13 @@ void Compiler::CompileSubroutineCall(std::ofstream& output_file){
     }
 };
 
-bool Compiler::StartOfTerm(){
+bool CompilerXML::StartOfTerm(){
     return (tokeniser.GetTokenType() == "INT_CONST") || (tokeniser.GetTokenType() == "STRING_CONST") || (tokeniser.GetSpecificType(tokeniser.GetCurrentToken()) == "KEYWORD_CONST") ||
     ((tokeniser.GetTokenType() == "IDENTIFIER") && !(tokeniser.Peek() == "(" || tokeniser.Peek() == ".")) || (tokeniser.Peek() == "[") || (tokeniser.GetCurrentToken() == "(") || (tokeniser.GetCurrentToken() == "-" || tokeniser.GetCurrentToken() == "~") ||
     (tokeniser.Peek() == "(") || (tokeniser.Peek() == ".");
 }
 
-void Compiler::CompileTerm(std::ofstream& output_file){
+void CompilerXML::CompileTerm(std::ofstream& output_file){
     output_file << "<term>" << std::endl;
     if (tokeniser.GetTokenType() == "INT_CONST"){
         output_file << Process("", "INT_CONST", "") << std::endl;
@@ -85,7 +85,7 @@ void Compiler::CompileTerm(std::ofstream& output_file){
     output_file << "</term>" << std::endl;
 }
 
-void Compiler::Compile(std::string output_path){
+void CompilerXML::Compile(std::string output_path){
     std::ofstream outfile(output_path);
 
     CompileClass(outfile);
@@ -93,7 +93,7 @@ void Compiler::Compile(std::string output_path){
     std::cout << "Done compiling into: " << output_path << std::endl; 
 }
 
-void Compiler::CompileClass(std::ofstream& output_file){
+void CompilerXML::CompileClass(std::ofstream& output_file){
     output_file << "<class>" << std::endl;
     output_file << Process("class", "", "") << std::endl;
     output_file << Process("", "IDENTIFIER", "") << std::endl;
@@ -112,7 +112,7 @@ void Compiler::CompileClass(std::ofstream& output_file){
 
 }
 
-void Compiler::CompileClassVarDec(std::ofstream& output_file){
+void CompilerXML::CompileClassVarDec(std::ofstream& output_file){
     output_file << "<classVarDec>" << std::endl;
     output_file << Process(tokeniser.GetCurrentToken(), "", "CLASSVARDEC") << std::endl;
     output_file << Process(tokeniser.GetCurrentToken(), "", "TYPE") << std::endl;
@@ -126,7 +126,7 @@ void Compiler::CompileClassVarDec(std::ofstream& output_file){
     output_file << "</classVarDec>" << std::endl;
 }
 
-void Compiler::CompileSubroutine(std::ofstream& output_file){
+void CompilerXML::CompileSubroutine(std::ofstream& output_file){
     output_file << "<subroutineDec>" << std::endl;
     output_file << Process(tokeniser.GetCurrentToken(), "", "SUBTYPE") << std::endl;
     output_file << Process(tokeniser.GetCurrentToken(), "", "SUBRETTYPE") << std::endl;
@@ -140,7 +140,7 @@ void Compiler::CompileSubroutine(std::ofstream& output_file){
     output_file << "</subroutineDec>" << std::endl;
 }
 
-void Compiler::CompileParamList(std::ofstream& output_file){
+void CompilerXML::CompileParamList(std::ofstream& output_file){
     output_file << "<parameterList>" << std::endl;
 
     // check that the subroutine has at least one parameter
@@ -159,7 +159,7 @@ void Compiler::CompileParamList(std::ofstream& output_file){
     output_file << "</parameterList>" << std::endl; 
 }
 
-void Compiler::CompileSubroutineBody(std::ofstream& output_file){
+void CompilerXML::CompileSubroutineBody(std::ofstream& output_file){
     output_file << "<subroutineBody>" << std::endl;
     output_file << Process("{", "", "") << std::endl;
 
@@ -176,7 +176,7 @@ void Compiler::CompileSubroutineBody(std::ofstream& output_file){
     output_file << "</subroutineBody>" << std::endl; 
 }
 
-void Compiler::CompileStatements(std::ofstream& output_file){
+void CompilerXML::CompileStatements(std::ofstream& output_file){
     output_file << "<statements>" << std::endl;
     while(tokeniser.GetSpecificType(tokeniser.GetCurrentToken()) == "STATEMENT"){
         if(tokeniser.GetCurrentToken() == "let"){
@@ -194,7 +194,7 @@ void Compiler::CompileStatements(std::ofstream& output_file){
     output_file << "</statements>" << std::endl;
 }
 
-void Compiler::CompileExpression(std::ofstream& output_file){
+void CompilerXML::CompileExpression(std::ofstream& output_file){
     output_file << "<expression>" << std::endl;
     //std::cout << "curr:" << tokeniser.GetCurrentToken() << "nxt:" << tokeniser.Peek() << std::endl;
     // there's at least one term in an expression
@@ -210,7 +210,7 @@ void Compiler::CompileExpression(std::ofstream& output_file){
     output_file << "</expression>" << std::endl;
 }
 
-int Compiler::CompileExpressionList(std::ofstream& output_file){
+int CompilerXML::CompileExpressionList(std::ofstream& output_file){
     int expressions = 0;
     output_file << "<expressionList>" << std::endl;
 
@@ -232,7 +232,7 @@ int Compiler::CompileExpressionList(std::ofstream& output_file){
     return expressions;
 }
 
-void Compiler::CompileLet(std::ofstream& output_file){
+void CompilerXML::CompileLet(std::ofstream& output_file){
     output_file << "<letStatement>" << std::endl;
     output_file << Process("let", "", "") << std::endl;
     output_file << Process("", "IDENTIFIER", "") << std::endl;
@@ -250,7 +250,7 @@ void Compiler::CompileLet(std::ofstream& output_file){
     output_file << "</letStatement>" << std::endl;
 }
 
-void Compiler::CompileIf(std::ofstream& output_file){
+void CompilerXML::CompileIf(std::ofstream& output_file){
     output_file << "<ifStatement>" << std::endl;
     output_file << Process("if", "", "") << std::endl;
     output_file << Process("(", "", "") << std::endl;
@@ -269,7 +269,7 @@ void Compiler::CompileIf(std::ofstream& output_file){
     output_file << "</ifStatement>" << std::endl;
 }
 
-void Compiler::CompileWhile(std::ofstream& output_file){
+void CompilerXML::CompileWhile(std::ofstream& output_file){
     output_file << "<whileStatement>" << std::endl;
     output_file << Process("while", "", "") << std::endl;
     output_file << Process("(", "", "") << std::endl;
@@ -281,7 +281,7 @@ void Compiler::CompileWhile(std::ofstream& output_file){
     output_file << "</whileStatement>" << std::endl;
 }
 
-void Compiler::CompileDo(std::ofstream& output_file){
+void CompilerXML::CompileDo(std::ofstream& output_file){
     output_file << "<doStatement>" << std::endl;
     output_file << Process("do", "", "") << std::endl;
 
@@ -291,7 +291,7 @@ void Compiler::CompileDo(std::ofstream& output_file){
     output_file << "</doStatement>" << std::endl;
 }
 
-void Compiler::CompileReturn(std::ofstream& output_file){
+void CompilerXML::CompileReturn(std::ofstream& output_file){
     output_file << "<returnStatement>" << std::endl;
     output_file << Process("return", "", "") << std::endl;
 
@@ -303,7 +303,7 @@ void Compiler::CompileReturn(std::ofstream& output_file){
     output_file << "</returnStatement>" << std::endl;
 }
 
-void Compiler::CompileVarDec(std::ofstream& output_file){
+void CompilerXML::CompileVarDec(std::ofstream& output_file){
     output_file << "<varDec>" << std::endl;
     output_file << Process("var", "", "") << std::endl;
     output_file << Process(tokeniser.GetCurrentToken(), "", "TYPE") << std::endl;
@@ -318,7 +318,7 @@ void Compiler::CompileVarDec(std::ofstream& output_file){
     output_file << "</varDec>" << std::endl;
 }
 
-std::string Compiler::Process(std::string str, std::string tkn_type, std::string specific_type){
+std::string CompilerXML::Process(std::string str, std::string tkn_type, std::string specific_type){
     if (tokeniser.GetCurrentToken() == str || tokeniser.GetTokenType() == tkn_type || tokeniser.GetSpecificType(str) == specific_type){
         std::string xml = GetTokenXML(tokeniser.GetCurrentToken(), tokeniser.GetTokenType());
         if (tokeniser.HasMoreTokens()) {tokeniser.Advance();}

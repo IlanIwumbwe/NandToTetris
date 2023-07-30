@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include "./Compiler.hpp"
+#include "./JackTokeniser.hpp"
 #include "./Lexer.hpp"
 #include "./helper_funcs.hpp"
 
@@ -14,7 +14,7 @@ int main()
     std::vector<std::string> paths = GetFilesToParse(FILE_PATH, ".jack");
 
     Tokeniser tk;
-    Compiler cp;
+    CompilerXML cp;
 
     for (std::string path : paths){
         // for each file, set it as the file to be tokenised, tokenise and save them in an xml doc
