@@ -10,7 +10,7 @@ class CompilerXML{
         CompilerXML();
         void Compile(std::string output_path);
         std::string Process(std::string str, std::string tkn_type, std::string specific_type);
-        void SetTokeniser(Tokeniser tk);
+        void SetLexer(Lexer lexr);
         void SaveSubName(std::string sub_name);
         bool NameInSubs(std::string name);
         bool StartOfTerm();
@@ -30,8 +30,9 @@ class CompilerXML{
         void CompileTerm(std::ofstream& output_file);
         void CompileSubroutineCall(std::ofstream& output_file);
         int CompileExpressionList(std::ofstream& output_file);
+        ~CompilerXML();
 
     private:
-        Tokeniser tokeniser;
+        Lexer lexer;
         std::vector<std::string> subroutine_names;
 };

@@ -7,7 +7,7 @@
 #include "./helper_funcs.hpp"
 #include "./Lexer.hpp"
 
-Tokeniser::Tokeniser(){
+Lexer::Lexer(){
     
     // regex for the Jack Grammar
     keywords = R"(class|int|constructor|function|method|field|static|var|char|boolean|void|true|false|null|this|let|do|if|else|while|return)";
@@ -34,15 +34,17 @@ Tokeniser::Tokeniser(){
 
 }
 
-void Tokeniser::SetFilePath(std::string current_path){
+Lexer::~Lexer(){ }
+
+void Lexer::SetFilePath(std::string current_path){
     current_file_path = current_path;
 }
 
-std::vector<std::string> Tokeniser::GetTokens(){
+std::vector<std::string> Lexer::GetTokens(){
     return tokens;
 }
 
-std::string Tokeniser::Peek(){
+std::string Lexer::Peek(){
     if (HasMoreTokens()) {
         return tokens[token_pointer + 1];
     } else {
@@ -50,16 +52,17 @@ std::string Tokeniser::Peek(){
     }
 }
 
-std::string Tokeniser::Previous(){
+std::string Lexer::Previous(){
     return tokens[token_pointer - 1];
 }
 
 
-void Tokeniser::InitialiseCurrToken(){
+void Lexer::InitialiseCurrToken(){
+    token_pointer = 0;
     current_token = tokens[token_pointer];
 }
 
-void Tokeniser::Tokenise(){
+void Lexer::Lex(){
     std::ifstream infile;
     infile.open(current_file_path);
 
@@ -117,11 +120,11 @@ void Tokeniser::Tokenise(){
 
 }
 
-bool Tokeniser::HasMoreTokens(){
+bool Lexer::HasMoreTokens(){
     return (token_pointer < tokens.size());
 }
 
-void Tokeniser::Advance(){
+void Lexer::Advance(){
     token_pointer++;
 
     if (token_pointer == tokens.size()){
@@ -133,11 +136,11 @@ void Tokeniser::Advance(){
     
 }
 
-std::string Tokeniser::GetCurrentToken(){
+std::string Lexer::GetCurrentToken(){
     return current_token;
 }
 
-std::string Tokeniser::GetSpecificType(std::string tkn){
+std::string Lexer::GetSpecificType(std::string tkn){
     std::regex classVarDecP(classVarDec);
     std::regex typeP(type);
     std::regex subTypeP(subType);
@@ -165,7 +168,7 @@ std::string Tokeniser::GetSpecificType(std::string tkn){
     }
 }
 
-std::string Tokeniser::GetTokenType(){
+std::string Lexer::GetTokenType(){
     std::regex keyword_pattern(keywords);
     std::regex symbol_pattern(symbols);
     std::regex int_const_pattern(int_constants);
@@ -188,7 +191,7 @@ std::string Tokeniser::GetTokenType(){
     
 }
 
-void Tokeniser::SaveTokens(std::string input_path){
+void Lexer::SaveTokens(std::string input_path){
     // T flag to show that the output path must is a file containing tokens not parse tree
     std::string output_path = GetOutputPath(input_path, ".xml", "T");
 

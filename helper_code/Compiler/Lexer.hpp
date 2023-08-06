@@ -3,11 +3,11 @@
 #include <vector>
 #include <map>
 
-class Tokeniser{
+class Lexer{
     public:
-        Tokeniser();
+        Lexer();
         void SetFilePath(std::string current_path);
-        void Tokenise();
+        void Lex();
         std::vector<std::string> GetTokens();
         bool HasMoreTokens();
         void Advance();
@@ -18,6 +18,7 @@ class Tokeniser{
         std::string GetSpecificType(std::string tkn);
         void SaveTokens(std::string input_path);
         void InitialiseCurrToken();
+        ~Lexer();
 
     private:
         std::string current_file_path;

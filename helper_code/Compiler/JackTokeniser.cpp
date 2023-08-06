@@ -12,8 +12,12 @@ CompilerXML::CompilerXML(){
 
 }
 
-void CompilerXML::SetTokeniser(Tokeniser tk){
-    tokeniser = tk;
+CompilerXML::~CompilerXML(){
+    
+}
+
+void CompilerXML::SetLexer(Lexer lexr){
+    lexer = lexr;
 }
 
 void CompilerXML::SaveSubName(std::string sub_nme){
@@ -27,9 +31,9 @@ bool CompilerXML::NameInSubs(std::string name){
 }
 
 void CompilerXML::CompileSubroutineCall(std::ofstream& output_file){
-    if(tokeniser.Peek() == "."){
+    if(lexer.Peek() == "."){
     // calling subroutine from object
-        if(NameInSubs(tokeniser.GetCurrentToken())){
+        if(NameInSubs(lexer.GetCurrentToken())){
             output_file << "Syntax error: Trying to access subroutine from subroutine using '.' is not allowed" << std::endl;
         } else {
             output_file << Process("", "IDENTIFIER", "") << std::endl;
@@ -49,34 +53,34 @@ void CompilerXML::CompileSubroutineCall(std::ofstream& output_file){
 };
 
 bool CompilerXML::StartOfTerm(){
-    return (tokeniser.GetTokenType() == "INT_CONST") || (tokeniser.GetTokenType() == "STRING_CONST") || (tokeniser.GetSpecificType(tokeniser.GetCurrentToken()) == "KEYWORD_CONST") ||
-    ((tokeniser.GetTokenType() == "IDENTIFIER") && !(tokeniser.Peek() == "(" || tokeniser.Peek() == ".")) || (tokeniser.Peek() == "[") || (tokeniser.GetCurrentToken() == "(") || (tokeniser.GetCurrentToken() == "-" || tokeniser.GetCurrentToken() == "~") ||
-    (tokeniser.Peek() == "(") || (tokeniser.Peek() == ".");
+    return (lexer.GetTokenType() == "INT_CONST") || (lexer.GetTokenType() == "STRING_CONST") || (lexer.GetSpecificType(lexer.GetCurrentToken()) == "KEYWORD_CONST") ||
+    ((lexer.GetTokenType() == "IDENTIFIER") && !(lexer.Peek() == "(" || lexer.Peek() == ".")) || (lexer.Peek() == "[") || (lexer.GetCurrentToken() == "(") || (lexer.GetCurrentToken() == "-" || lexer.GetCurrentToken() == "~") ||
+    (lexer.Peek() == "(") || (lexer.Peek() == ".");
 }
 
 void CompilerXML::CompileTerm(std::ofstream& output_file){
     output_file << "<term>" << std::endl;
-    if (tokeniser.GetTokenType() == "INT_CONST"){
+    if (lexer.GetTokenType() == "INT_CONST"){
         output_file << Process("", "INT_CONST", "") << std::endl;
-    } else if (tokeniser.GetTokenType() == "STRING_CONST"){
+    } else if (lexer.GetTokenType() == "STRING_CONST"){
         output_file << Process("", "STRING_CONST", "") << std::endl;
-    } else if (tokeniser.GetSpecificType(tokeniser.GetCurrentToken()) == "KEYWORD_CONST"){
-        output_file << Process(tokeniser.GetCurrentToken(), "", "KEYWORD_CONST") << std::endl;
-    } else if ((tokeniser.GetTokenType() == "IDENTIFIER") && !(tokeniser.Peek() == "(" || tokeniser.Peek() == "." || tokeniser.Peek() == "[")){
+    } else if (lexer.GetSpecificType(lexer.GetCurrentToken()) == "KEYWORD_CONST"){
+        output_file << Process(lexer.GetCurrentToken(), "", "KEYWORD_CONST") << std::endl;
+    } else if ((lexer.GetTokenType() == "IDENTIFIER") && !(lexer.Peek() == "(" || lexer.Peek() == "." || lexer.Peek() == "[")){
         output_file << Process("", "IDENTIFIER", "") << std::endl;
-    } else if (tokeniser.Peek() == "["){
+    } else if (lexer.Peek() == "["){
         output_file << Process("", "IDENTIFIER", "") << std::endl;
         output_file << Process("[", "", "") << std::endl;
         CompileExpression(output_file);
         output_file << Process("]", "", "") << std::endl;
-    } else if (tokeniser.GetCurrentToken() == "("){
+    } else if (lexer.GetCurrentToken() == "("){
         output_file << Process("(", "", "") << std::endl;
         CompileExpression(output_file);
         output_file << Process(")", "", "") << std::endl;
-    } else if (tokeniser.GetCurrentToken() == "-" || tokeniser.GetCurrentToken() == "~"){
-        output_file << Process(tokeniser.GetCurrentToken(), "", "") << std::endl;
+    } else if (lexer.GetCurrentToken() == "-" || lexer.GetCurrentToken() == "~"){
+        output_file << Process(lexer.GetCurrentToken(), "", "") << std::endl;
         CompileTerm(output_file);
-    } else if (tokeniser.Peek() == "(" || tokeniser.Peek() == "."){
+    } else if (lexer.Peek() == "(" || lexer.Peek() == "."){
         // subroutine call is term
         CompileSubroutineCall(output_file);
     } else {
@@ -99,12 +103,12 @@ void CompilerXML::CompileClass(std::ofstream& output_file){
     output_file << Process("", "IDENTIFIER", "") << std::endl;
     output_file << Process("{", "", "") << std::endl;
     // class variable declarations
-    while(tokeniser.GetSpecificType(tokeniser.GetCurrentToken()) == "CLASSVARDEC"){
+    while(lexer.GetSpecificType(lexer.GetCurrentToken()) == "CLASSVARDEC"){
         CompileClassVarDec(output_file);
     }
 
     // subroutine declarations
-    while(tokeniser.GetSpecificType(tokeniser.GetCurrentToken()) == "SUBTYPE"){
+    while(lexer.GetSpecificType(lexer.GetCurrentToken()) == "SUBTYPE"){
         CompileSubroutine(output_file);
     }
     output_file << Process("}", "", "") << std::endl;
@@ -114,11 +118,11 @@ void CompilerXML::CompileClass(std::ofstream& output_file){
 
 void CompilerXML::CompileClassVarDec(std::ofstream& output_file){
     output_file << "<classVarDec>" << std::endl;
-    output_file << Process(tokeniser.GetCurrentToken(), "", "CLASSVARDEC") << std::endl;
-    output_file << Process(tokeniser.GetCurrentToken(), "", "TYPE") << std::endl;
+    output_file << Process(lexer.GetCurrentToken(), "", "CLASSVARDEC") << std::endl;
+    output_file << Process(lexer.GetCurrentToken(), "", "TYPE") << std::endl;
     output_file << Process("", "IDENTIFIER", "") << std::endl;
     // variables of the same type
-    while(tokeniser.GetCurrentToken() == ","){
+    while(lexer.GetCurrentToken() == ","){
         output_file << Process(",", "", "") << std::endl;
         output_file << Process("", "IDENTIFIER", "") << std::endl;
     }
@@ -128,10 +132,10 @@ void CompilerXML::CompileClassVarDec(std::ofstream& output_file){
 
 void CompilerXML::CompileSubroutine(std::ofstream& output_file){
     output_file << "<subroutineDec>" << std::endl;
-    output_file << Process(tokeniser.GetCurrentToken(), "", "SUBTYPE") << std::endl;
-    output_file << Process(tokeniser.GetCurrentToken(), "", "SUBRETTYPE") << std::endl;
+    output_file << Process(lexer.GetCurrentToken(), "", "SUBTYPE") << std::endl;
+    output_file << Process(lexer.GetCurrentToken(), "", "SUBRETTYPE") << std::endl;
     output_file << Process("", "IDENTIFIER", "") << std::endl;
-    SaveSubName(tokeniser.Previous());
+    SaveSubName(lexer.Previous());
     output_file << Process("(", "", "") << std::endl;
     // parameter list
     CompileParamList(output_file);
@@ -144,14 +148,14 @@ void CompilerXML::CompileParamList(std::ofstream& output_file){
     output_file << "<parameterList>" << std::endl;
 
     // check that the subroutine has at least one parameter
-    if(tokeniser.GetSpecificType(tokeniser.GetCurrentToken()) == "TYPE"){
-        output_file << Process(tokeniser.GetCurrentToken(), "", "TYPE") << std::endl;
+    if(lexer.GetSpecificType(lexer.GetCurrentToken()) == "TYPE"){
+        output_file << Process(lexer.GetCurrentToken(), "", "TYPE") << std::endl;
         output_file << Process("", "IDENTIFIER", "") << std::endl;
 
         // more paramters
-        while(tokeniser.GetCurrentToken() == ","){
+        while(lexer.GetCurrentToken() == ","){
             output_file << Process(",", "", "") << std::endl;
-            output_file << Process(tokeniser.GetCurrentToken(), "", "TYPE") << std::endl;
+            output_file << Process(lexer.GetCurrentToken(), "", "TYPE") << std::endl;
             output_file << Process("", "IDENTIFIER", "") << std::endl;
         }
     }
@@ -164,7 +168,7 @@ void CompilerXML::CompileSubroutineBody(std::ofstream& output_file){
     output_file << Process("{", "", "") << std::endl;
 
     // subroutine variable declarations
-    while(tokeniser.GetCurrentToken() == "var"){
+    while(lexer.GetCurrentToken() == "var"){
         CompileVarDec(output_file);
     }
 
@@ -178,16 +182,16 @@ void CompilerXML::CompileSubroutineBody(std::ofstream& output_file){
 
 void CompilerXML::CompileStatements(std::ofstream& output_file){
     output_file << "<statements>" << std::endl;
-    while(tokeniser.GetSpecificType(tokeniser.GetCurrentToken()) == "STATEMENT"){
-        if(tokeniser.GetCurrentToken() == "let"){
+    while(lexer.GetSpecificType(lexer.GetCurrentToken()) == "STATEMENT"){
+        if(lexer.GetCurrentToken() == "let"){
             CompileLet(output_file);
-        } else if (tokeniser.GetCurrentToken() == "if"){
+        } else if (lexer.GetCurrentToken() == "if"){
             CompileIf(output_file);
-        } else if (tokeniser.GetCurrentToken() == "while"){
+        } else if (lexer.GetCurrentToken() == "while"){
             CompileWhile(output_file);
-        } else if (tokeniser.GetCurrentToken() == "do"){
+        } else if (lexer.GetCurrentToken() == "do"){
             CompileDo(output_file);
-        } else if(tokeniser.GetCurrentToken() == "return"){
+        } else if(lexer.GetCurrentToken() == "return"){
             CompileReturn(output_file);
         } 
     }
@@ -196,14 +200,13 @@ void CompilerXML::CompileStatements(std::ofstream& output_file){
 
 void CompilerXML::CompileExpression(std::ofstream& output_file){
     output_file << "<expression>" << std::endl;
-    //std::cout << "curr:" << tokeniser.GetCurrentToken() << "nxt:" << tokeniser.Peek() << std::endl;
+    //std::cout << "curr:" << lexer.GetCurrentToken() << "nxt:" << lexer.Peek() << std::endl;
     // there's at least one term in an expression
     CompileTerm(output_file);
 
     
-
-    while(tokeniser.GetSpecificType(tokeniser.GetCurrentToken()) == "OPERATOR"){
-        output_file << Process(tokeniser.GetCurrentToken(), "", "OPERATOR") << std::endl;
+    while(lexer.GetSpecificType(lexer.GetCurrentToken()) == "OPERATOR"){
+        output_file << Process(lexer.GetCurrentToken(), "", "OPERATOR") << std::endl;
         CompileTerm(output_file);
     }
 
@@ -220,7 +223,7 @@ int CompilerXML::CompileExpressionList(std::ofstream& output_file){
 
         expressions = 1;
 
-        while(tokeniser.GetCurrentToken() == ","){
+        while(lexer.GetCurrentToken() == ","){
             expressions += 1;
             output_file << Process(",", "", "") << std::endl;
             CompileExpression(output_file);
@@ -238,7 +241,7 @@ void CompilerXML::CompileLet(std::ofstream& output_file){
     output_file << Process("", "IDENTIFIER", "") << std::endl;
     
     // list access?
-    if(tokeniser.GetCurrentToken() == "["){
+    if(lexer.GetCurrentToken() == "["){
         output_file << Process("[", "", "") << std::endl;
         CompileExpression(output_file);
         output_file << Process("]", "", "") << std::endl;
@@ -260,7 +263,7 @@ void CompilerXML::CompileIf(std::ofstream& output_file){
     CompileStatements(output_file);
     output_file << Process("}", "", "") << std::endl;
 
-    if(tokeniser.GetCurrentToken() == "else"){
+    if(lexer.GetCurrentToken() == "else"){
         output_file << Process("else", "", "") << std::endl;
         output_file << Process("{", "", "") << std::endl;
         CompileStatements(output_file);
@@ -295,7 +298,7 @@ void CompilerXML::CompileReturn(std::ofstream& output_file){
     output_file << "<returnStatement>" << std::endl;
     output_file << Process("return", "", "") << std::endl;
 
-    if(tokeniser.GetCurrentToken() != ";"){
+    if(lexer.GetCurrentToken() != ";"){
         CompileExpression(output_file);
     }
 
@@ -306,11 +309,11 @@ void CompilerXML::CompileReturn(std::ofstream& output_file){
 void CompilerXML::CompileVarDec(std::ofstream& output_file){
     output_file << "<varDec>" << std::endl;
     output_file << Process("var", "", "") << std::endl;
-    output_file << Process(tokeniser.GetCurrentToken(), "", "TYPE") << std::endl;
+    output_file << Process(lexer.GetCurrentToken(), "", "TYPE") << std::endl;
     output_file << Process("", "IDENTIFIER", "") << std::endl;
 
     // variables of the same type
-    while(tokeniser.GetCurrentToken() == ","){
+    while(lexer.GetCurrentToken() == ","){
         output_file << Process(",", "", "") << std::endl;
         output_file << Process("", "IDENTIFIER", "") << std::endl;
     }
@@ -319,9 +322,9 @@ void CompilerXML::CompileVarDec(std::ofstream& output_file){
 }
 
 std::string CompilerXML::Process(std::string str, std::string tkn_type, std::string specific_type){
-    if (tokeniser.GetCurrentToken() == str || tokeniser.GetTokenType() == tkn_type || tokeniser.GetSpecificType(str) == specific_type){
-        std::string xml = GetTokenXML(tokeniser.GetCurrentToken(), tokeniser.GetTokenType());
-        if (tokeniser.HasMoreTokens()) {tokeniser.Advance();}
+    if (lexer.GetCurrentToken() == str || lexer.GetTokenType() == tkn_type || lexer.GetSpecificType(str) == specific_type){
+        std::string xml = GetTokenXML(lexer.GetCurrentToken(), lexer.GetTokenType());
+        if (lexer.HasMoreTokens()) {lexer.Advance();}
         return xml;
     } else {
         return "Syntax error";

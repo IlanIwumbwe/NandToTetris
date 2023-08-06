@@ -3,6 +3,7 @@
 #include "./JackTokeniser.hpp"
 #include "./Lexer.hpp"
 #include "./helper_funcs.hpp"
+#include "./Compiler.hpp"
 
 int main()
 {
@@ -13,22 +14,36 @@ int main()
     
     std::vector<std::string> paths = GetFilesToParse(FILE_PATH, ".jack");
 
-    Tokeniser tk;
-    CompilerXML cp;
+    Lexer lexer;
+    CompilerXML cpXML;
+
+    SymbolTable cLSymbolTable;
+    SymbolTable sLSymbolTable;
+    VMWriter vmwriter;
+    Compiler cp;
 
     for (std::string path : paths){
+        std::string output_path  = "";
         // for each file, set it as the file to be tokenised, tokenise and save them in an xml doc
-        tk.SetFilePath(path);
-        tk.Tokenise();
-        tk.SaveTokens(path);
-        tk.InitialiseCurrToken(); // set current token to top of token buffer
+        lexer.SetFilePath(path);
+        lexer.Lex();
+        lexer.SaveTokens(path);
+        lexer.InitialiseCurrToken(); // set current token to top of token buffer
         /* send tokens to compiler for full compilation 
             C is a compiler save flag, so that the loaded output path is correct
         */ 
-        cp.SetTokeniser(tk);
-        std::string output_path = GetOutputPath(path, ".xml", "C");
+        // this compiler gives XML output
+        // cpXML.SetLexer(lexer);
+        // output_path = GetOutputPath(path, ".xml", "C");
+        // cpXML.Compile(output_path);
+        
+        // this compiler gives .vm output
+        cp.SetLexer(lexer);
+        cp.SetSymbolTables(cLSymbolTable, sLSymbolTable);
+        cp.SetVMWriter(vmwriter);
+
+        output_path = GetOutputPath(path, ".vm", "");
         cp.Compile(output_path);
-    
     }
 
 }
