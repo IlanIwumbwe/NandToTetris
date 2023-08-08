@@ -28,22 +28,19 @@ int main()
         lexer.SetFilePath(path);
         lexer.Lex();
         lexer.SaveTokens(path);
-        lexer.InitialiseCurrToken(); // set current token to top of token buffer
+
         /* send tokens to compiler for full compilation 
             C is a compiler save flag, so that the loaded output path is correct
         */ 
         // this compiler gives XML output
-        // cpXML.SetLexer(lexer);
-        // output_path = GetOutputPath(path, ".xml", "C");
-        // cpXML.Compile(output_path);
+        lexer.InitialiseCurrToken(); // set current token to top of token buffer
+        output_path = GetOutputPath(path, ".xml", "C");
+        cpXML.Compile(output_path, lexer);
         
         // this compiler gives .vm output
-        cp.SetLexer(lexer);
-        cp.SetSymbolTables(cLSymbolTable, sLSymbolTable);
-        cp.SetVMWriter(vmwriter);
-
+        lexer.InitialiseCurrToken(); // set current token to top of token buffer
         output_path = GetOutputPath(path, ".vm", "");
-        cp.Compile(output_path);
+        cp.Compile(output_path, lexer);
     }
 
 }

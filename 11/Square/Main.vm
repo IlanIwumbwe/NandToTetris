@@ -1,0 +1,7 @@
+function Main.main 1
+Syntax error: Variable SquareGame not defined
+push  32759
+Syntax error: subroutine not defined
+pop local 0
+push constant 0
+return

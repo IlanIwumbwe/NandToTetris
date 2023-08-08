@@ -20,6 +20,7 @@ class SymbolTable{
     public:
         SymbolTable();
         void ClearTable();
+        void printTable();
         void SetRow(std::string name, TableRow row);
         TableRow GetRow(std::string name);
         void define(std::string name, std::string type, std::string kind);
@@ -52,22 +53,29 @@ class VMWriter{
         std::string WriteFunction(std::string name, int nLVars);
         std::string WriteReturn();
         ~VMWriter();
+
+    private:
+        std::map<std::string, std::string> ops;
 };
 
 /******************************************
                 COMPILER
 *******************************************/
 
+struct Subroutine {
+    std::string sub_name;
+    std::string sub_kind;
+};
+
 class Compiler{
     public:
         Compiler();
-        void Compile(std::string output_path);
+        void Compile(std::string output_path, Lexer lxr);
         std::string Process(std::string str, std::string tkn_type, std::string specific_type);
-        void SetLexer(Lexer lexr);
-        void SetSymbolTables(SymbolTable cl, SymbolTable sl);
-        void SetVMWriter(VMWriter writer);
-        void SaveSubName(std::string sub_name);
+        void SaveSubroutine(std::string sub_name, std::string sub_type);
         bool NameInSubs(std::string name);
+        bool NameInClasses(std::string name);
+        std::string SubKind(std::string sub_name);
         bool StartOfTerm();
         void CompileClass(std::ofstream& output_file);
         void CompileClassVarDec(std::ofstream& output_file);
@@ -89,11 +97,13 @@ class Compiler{
 
     private:
         Lexer lexer;
-        std::vector<std::string> subroutine_names;
+        Subroutine currentSub;
+        std::vector<Subroutine> subroutines;
         SymbolTable cLSymbolTable;
         SymbolTable sLSymbolTable;
         VMWriter vmwriter;
         std::string currentClass;
+        std::vector<std::string> classes = {"Math", "Keyboard", "Memory", "String", "Array", "Output", "Screen", "Sys"};
         int cond_counter = 0;
 };
 

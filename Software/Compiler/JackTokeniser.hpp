@@ -8,9 +8,8 @@
 class CompilerXML{
     public:
         CompilerXML();
-        void Compile(std::string output_path);
+        void Compile(std::string output_path, Lexer lxr);
         std::string Process(std::string str, std::string tkn_type, std::string specific_type);
-        void SetLexer(Lexer lexr);
         void SaveSubName(std::string sub_name);
         bool NameInSubs(std::string name);
         bool StartOfTerm();

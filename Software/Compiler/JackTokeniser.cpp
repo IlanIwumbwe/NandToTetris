@@ -13,11 +13,7 @@ CompilerXML::CompilerXML(){
 }
 
 CompilerXML::~CompilerXML(){
-    
-}
 
-void CompilerXML::SetLexer(Lexer lexr){
-    lexer = lexr;
 }
 
 void CompilerXML::SaveSubName(std::string sub_nme){
@@ -89,9 +85,10 @@ void CompilerXML::CompileTerm(std::ofstream& output_file){
     output_file << "</term>" << std::endl;
 }
 
-void CompilerXML::Compile(std::string output_path){
+void CompilerXML::Compile(std::string output_path, Lexer lxr){
     std::ofstream outfile(output_path);
 
+    lexer = lxr;
     CompileClass(outfile);
 
     std::cout << "Done compiling into: " << output_path << std::endl; 

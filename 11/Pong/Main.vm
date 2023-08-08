@@ -1,0 +1,7 @@
+function Main.main 1
+Syntax error: Variable PongGame not defined
+push  0
+Syntax error: subroutine not defined
+pop temp 0
+push constant 0
+return

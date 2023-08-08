@@ -13,14 +13,15 @@
                 SYMBOL TABLE
 *******************************************/
 
-SymbolTable::SymbolTable(){ }
+SymbolTable::SymbolTable(){
+}
 
 void SymbolTable::ClearTable(){
     table = {};
 }
 
 void SymbolTable::SetRow(std::string name, TableRow row){
-    table[name] = row;
+    table.insert({name, row});
 }
 
 TableRow SymbolTable::GetRow(std::string name){
@@ -43,6 +44,13 @@ int SymbolTable::varCount(std::string kind){
     }
 
     return count;
+}
+
+void SymbolTable::printTable(){
+    std::cout << "Printing table...." << std::endl;
+    for(const auto& pair : table){
+        std::cout << "var: " << pair.first << " type: " << pair.second.type << " kind: " << pair.second.kind << " index: " << pair.second.index << std::endl;
+    }
 }
 
 std::string SymbolTable::kindOf(std::string name){
@@ -74,7 +82,20 @@ SymbolTable::~SymbolTable(){ }
                 VM WRITER
 *******************************************/
 
-VMWriter::VMWriter(){}
+VMWriter::VMWriter(){
+    ops["+"] = "add";
+    ops["-"] = "sub";
+    ops["/"] = "call Math.divide 2";
+    ops[">"] = "gt";
+    ops["<"] = "lt";
+    ops["~"] = "not";
+    ops["|"] = "or";
+    ops["&"] = "and";
+    ops["*"] = "call Math.multiply 2";
+    ops["="] = "eq";
+    ops["*-"] = "neg";
+    ops["*~"] = "not";
+}
 
 VMWriter::~VMWriter(){}
 
@@ -91,9 +112,7 @@ std::string VMWriter::WritePop(std::string segment, int index){
 }
 
 std::string VMWriter::WriteArithmetic(std::string command){
-    std::transform(command.begin(), command.end(), command.begin(), [](unsigned char c) { return std::tolower(c); });
-
-    return command;
+    return ops[command];
 }
 
 std::string VMWriter::WriteLabel(std::string label){
@@ -128,25 +147,13 @@ Compiler::Compiler(){ }
 
 Compiler::~Compiler(){ }
 
-void Compiler::Compile(std::string output_path){
+void Compiler::Compile(std::string output_path, Lexer lxr){
     std::ofstream outfile(output_path);
-
+    
+    lexer = lxr;
     CompileClass(outfile);
 
     std::cout << "Done compiling into: " << output_path << std::endl; 
-}
-
-void Compiler::SetLexer(Lexer lexr){
-    lexer = lexr;
-}
-
-void Compiler::SetSymbolTables(SymbolTable cl, SymbolTable sl){
-    cLSymbolTable = cl;
-    sLSymbolTable = sl;
-}
-
-void Compiler::SetVMWriter(VMWriter writer){
-    vmwriter = writer;
 }
 
 bool Compiler::StartOfTerm(){
@@ -155,22 +162,42 @@ bool Compiler::StartOfTerm(){
     (lexer.Peek() == "(") || (lexer.Peek() == ".");
 }
 
-void Compiler::SaveSubName(std::string sub_nme){
-    subroutine_names.push_back(sub_nme);
+void Compiler::SaveSubroutine(std::string sub_nme, std::string sub_type){
+    Subroutine sub{sub_nme, sub_type};
+    subroutines.push_back(sub);
+    currentSub = subroutines[subroutines.size() - 1];
 }
 
 bool Compiler::NameInSubs(std::string name){
-    auto it = std::find(subroutine_names.begin(), subroutine_names.end(), name);
+    auto it = std::find_if(subroutines.begin(), subroutines.end(), [name](const Subroutine& sub){
+        return sub.sub_name == name;
+    });
 
-    return it != subroutine_names.end();
+    return it != subroutines.end();
 }
+
+std::string Compiler::SubKind(std::string sub_name){
+    auto it = std::find_if(subroutines.begin(), subroutines.end(), [sub_name](const Subroutine& sub){
+        return sub.sub_name == sub_name;
+    });
+
+    return it->sub_kind;
+}
+
+bool Compiler::NameInClasses(std::string name){
+    auto it = std::find(classes.begin(), classes.end(), name);
+
+    return it != classes.end();
+}
+
 
 void Compiler::CompileClass(std::ofstream& output_file){
     // initialise empty class level symbol table
     cLSymbolTable.ClearTable();
 
     Process("class", "", "");
-    currentClass = Process("", "IDENTIFIER", "");
+    classes.push_back(Process("", "IDENTIFIER", ""));
+    currentClass = classes[classes.size()-1];
     Process("{", "", "");
     // class variable declarations
     while(lexer.GetSpecificType(lexer.GetCurrentToken()) == "CLASSVARDEC"){
@@ -182,6 +209,7 @@ void Compiler::CompileClass(std::ofstream& output_file){
         CompileSubroutine(output_file);
     }
     Process("}", "", "");
+
 }
 
 void Compiler::CompileClassVarDec(std::ofstream& output_file){
@@ -200,6 +228,7 @@ void Compiler::CompileClassVarDec(std::ofstream& output_file){
     }
 
     Process(";", "", "");
+    // cLSymbolTable.printTable();
 }
 
 void Compiler::CompileSubroutine(std::ofstream& output_file){
@@ -218,7 +247,7 @@ void Compiler::CompileSubroutine(std::ofstream& output_file){
     }
     
     Process("", "IDENTIFIER", "");
-    SaveSubName(lexer.Previous());
+    SaveSubroutine(lexer.Previous(), subType);
     Process("(", "", "");
     // parameter list
     CompileParamList(output_file);
@@ -300,8 +329,10 @@ void Compiler::CompileSubroutineBody(std::ofstream& output_file, std::string add
         nVarDecs += CompileVarDec(output_file);
     }
 
-    output_file << vmwriter.WriteFunction(currentClass + "." + subroutine_names[subroutine_names.size() - 1], nVarDecs) << std::endl;
-    output_file << additionalCode << std::endl;
+    // sLSymbolTable.printTable();
+
+    output_file << vmwriter.WriteFunction(currentClass + "." + currentSub.sub_name, nVarDecs) << std::endl;
+    if (additionalCode != ""){ output_file << additionalCode << std::endl; }
 
     // statements
     CompileStatements(output_file);
@@ -332,19 +363,18 @@ void Compiler::CompileTerm(std::ofstream& output_file){
     if (lexer.GetTokenType() == "INT_CONST"){
 
         std::string int_const = Process("", "INT_CONST", "");
-        std::cout << int_const;
-        //output_file << vmwriter.WritePush("constant", (int)int_const) << std::endl;
+        output_file << vmwriter.WritePush("constant", std::stoi(int_const)) << std::endl;
 
     } else if (lexer.GetTokenType() == "STRING_CONST"){
 
         std::string str_const = Process("", "STRING_CONST", "");
 
-        output_file << vmwriter.WritePush("constant", (int)str_const[0]) << std::endl;
-        output_file << vmwriter.WriteCall("String.new", 1);
+        output_file << vmwriter.WritePush("constant", str_const.size()-2) << std::endl;
+        output_file << vmwriter.WriteCall("String.new", 1) << std::endl;
 
-        for (int i = 1; i < str_const.size(); i++){
+        for (int i = 1; i < str_const.size()-1; i++){
             output_file << vmwriter.WritePush("constant", (int)str_const[i]) << std::endl;
-            output_file << vmwriter.WriteCall("String.appendChar", 2);
+            output_file << vmwriter.WriteCall("String.appendChar", 2) << std::endl;
         }
 
     } else if (lexer.GetSpecificType(lexer.GetCurrentToken()) == "KEYWORD_CONST"){
@@ -357,7 +387,7 @@ void Compiler::CompileTerm(std::ofstream& output_file){
             output_file << vmwriter.WritePush("pointer", 0) << std::endl;
         } else {
             output_file << vmwriter.WritePush("constant", 0) << std::endl;
-            output_file << vmwriter.WriteArithmetic("not") << std::endl;
+            output_file << vmwriter.WriteArithmetic("~") << std::endl;
         }
 
     } else if ((lexer.GetTokenType() == "IDENTIFIER") && !(lexer.Peek() == "(" || lexer.Peek() == "." || lexer.Peek() == "[")){
@@ -376,11 +406,11 @@ void Compiler::CompileTerm(std::ofstream& output_file){
                 seg = cLSymbolTable.kindOf(identifier) == "field" ? "this" : "static";
                 index = cLSymbolTable.indexOf(identifier);
             } else {
-                output_file << "Syntax error: Variable not defined" << std::endl;
+                output_file << "Syntax error: Variable " << identifier << " not defined" << std::endl;
             }
         }
 
-        output_file << vmwriter.WritePush(seg, index);
+        output_file << vmwriter.WritePush(seg, index) << std::endl;
 
     } else if (lexer.Peek() == "["){
         std::string identifier = Process("", "IDENTIFIER", "");
@@ -397,17 +427,21 @@ void Compiler::CompileTerm(std::ofstream& output_file){
                 seg = cLSymbolTable.kindOf(identifier) == "field" ? "this" : "static";
                 index = cLSymbolTable.indexOf(identifier);
             } else {
-                output_file << "Syntax error: Variable not defined" << std::endl;
+                output_file << "Syntax error: Variable " << identifier << " not defined" << std::endl;
             }
         }
-
-        output_file << vmwriter.WritePush(seg, index) << std::endl;
 
         Process("[", "", "");
         CompileExpression(output_file);
         Process("]", "", "");
 
-        output_file << vmwriter.WriteArithmetic("add") << std::endl;
+        output_file << vmwriter.WritePush(seg, index) << std::endl;
+
+        output_file << vmwriter.WriteArithmetic("+") << std::endl;
+
+        output_file << vmwriter.WritePop("pointer", 1) << std::endl;
+        output_file << vmwriter.WritePush("that", 0) << std::endl;
+        
         
     } else if (lexer.GetCurrentToken() == "("){
         Process("(", "", "");
@@ -415,15 +449,15 @@ void Compiler::CompileTerm(std::ofstream& output_file){
         Process(")", "", "");
 
     } else if (lexer.GetCurrentToken() == "-" || lexer.GetCurrentToken() == "~"){
-        Process(lexer.GetCurrentToken(), "", "");
-        std::string op = (lexer.Previous() == "-") ? "neg" : "not";
-
-        output_file << vmwriter.WriteArithmetic(op);
-
+        std::string unary_op = Process(lexer.GetCurrentToken(), "", "");
+    
         CompileTerm(output_file);
+
+        output_file << vmwriter.WriteArithmetic("*" + unary_op) << std::endl;
 
     } else if (lexer.Peek() == "(" || lexer.Peek() == "."){
         // subroutine call is term
+        // std::cout << lexer.GetCurrentToken();
         CompileSubroutineCall(output_file);
 
     } else {
@@ -437,8 +471,10 @@ void Compiler::CompileExpression(std::ofstream& output_file){
     CompileTerm(output_file);
     
     while(lexer.GetSpecificType(lexer.GetCurrentToken()) == "OPERATOR"){
-        output_file << Process(lexer.GetCurrentToken(), "", "OPERATOR") << std::endl;
+        std::string op = Process(lexer.GetCurrentToken(), "", "OPERATOR");
         CompileTerm(output_file);
+
+        output_file << vmwriter.WriteArithmetic(op) << std::endl;
     }
 
 }
@@ -468,48 +504,77 @@ void Compiler::CompileSubroutineCall(std::ofstream& output_file){
     // calling subroutine from object
         if(NameInSubs(lexer.GetCurrentToken())){
             output_file << "Syntax error: Trying to access subroutine from subroutine using '.' is not allowed" << std::endl;
+    
         } else {
             std::string identifier = Process("", "IDENTIFIER", "");
+            
+            // OS class identifiers not allowed
+            if (!NameInClasses(identifier)){
 
-            // search symbol tables for idenitfier
-            std::string seg;
-            int index;
+                // search symbol tables for idenitfier
+                std::string seg;
+                int index;
 
-            if (sLSymbolTable.variableDefined(identifier)){
-                seg = sLSymbolTable.kindOf(identifier) == "var" ? "local" : "argument";
-                index = sLSymbolTable.indexOf(identifier);
-            } else {
-                if (cLSymbolTable.variableDefined(identifier)){
-                    seg = cLSymbolTable.kindOf(identifier) == "field" ? "this" : "static";
-                    index = cLSymbolTable.indexOf(identifier);
+                std::string identifier_loc;
+
+                if (sLSymbolTable.variableDefined(identifier)){
+                    seg = sLSymbolTable.kindOf(identifier) == "var" ? "local" : "argument";
+                    index = sLSymbolTable.indexOf(identifier);
+                    identifier_loc = "sub";
                 } else {
-                    output_file << "Syntax error: Variable not defined" << std::endl;
+                    if (cLSymbolTable.variableDefined(identifier)){
+                        seg = cLSymbolTable.kindOf(identifier) == "field" ? "this" : "static";
+                        index = cLSymbolTable.indexOf(identifier);
+                        identifier_loc = "class";
+                    } else {
+                        output_file << "Syntax error: Variable " << identifier << " not defined" << std::endl;
+                    }
                 }
+                // push symbol table mapping of varName onto stack
+                output_file << vmwriter.WritePush(seg, index) << std::endl;
+
+                Process(".", "", "");
+                std::string sub_name = Process("", "IDENTIFIER", "");
+
+                if (NameInSubs(sub_name)){
+                    if (SubKind(sub_name) != "method"){
+                        output_file << "Syntax error: Functions should be referenced with class names" << std::endl;
+                    } else {
+                        Process("(", "", "");
+                        int nArgs = CompileExpressionList(output_file);
+                        Process(")", "", "");
+                        
+                        std::string class_name = (identifier_loc == "sub")? sLSymbolTable.typeOf(identifier) : cLSymbolTable.typeOf(identifier);
+                        output_file << vmwriter.WriteCall(class_name  + "." + sub_name, nArgs + 1) << std::endl;
+                    }
+                    
+                } else {
+                    output_file << "Syntax error: subroutine not defined" << std::endl;
+                }
+
+            } else {
+
+                Process(".", "", "");
+                std::string method_name = Process("", "IDENTIFIER", "");
+                Process("(", "", "");
+                int nArgs = CompileExpressionList(output_file);
+                Process(")", "", "");
+
+                output_file << vmwriter.WriteCall(identifier + "." + method_name, nArgs) << std::endl;
             }
-
-            // push symbol table mapping of varName onto stack
-            output_file << vmwriter.WritePush(seg, index);
-
-            Process(".", "", "");
-            std::string method_name = Process("", "IDENTIFIER", "");
-            Process("(", "", "");
-            int nArgs = CompileExpressionList(output_file);
-            Process(")", "", "");
-
-            output_file << vmwriter.WriteCall(currentClass + "." + method_name, nArgs + 1);
         }
     
     } else {
         // no varName given, so push symbol table mapping of the this pointer (the current object)
         
-        output_file << vmwriter.WritePush("pointer", 0);
+        output_file << vmwriter.WritePush("pointer", 0) << std::endl;
 
         std::string method_name = Process("", "IDENTIFIER", "");
         Process("(", "", "");
         int nArgs = CompileExpressionList(output_file);
         Process(")", "", "");
 
-        output_file << vmwriter.WriteCall(currentClass + "." + method_name, nArgs + 1);
+        output_file << vmwriter.WriteCall(currentClass + "." + method_name, nArgs + 1) << std::endl;
     }
 };
 
@@ -517,7 +582,6 @@ void Compiler::CompileLet(std::ofstream& output_file){
 
     Process("let", "", "");
     std::string identifier = Process("", "IDENTIFIER", "");
-
     std::string seg = "";
     int index;
 
@@ -529,19 +593,18 @@ void Compiler::CompileLet(std::ofstream& output_file){
             seg = cLSymbolTable.kindOf(identifier) == "field" ? "this" : "static";
             index = cLSymbolTable.indexOf(identifier);
         } else {
-            output_file << "Syntax error: Variable not defined" << std::endl;
+            output_file << "Syntax error: Variable " << identifier << " not defined" << std::endl;
         }
     }
     
     // list access?
     if(lexer.GetCurrentToken() == "["){
+        Process("[", "", "");
+        CompileExpression(output_file);
+        Process("]", "", "");
         output_file << vmwriter.WritePush(seg, index) << std::endl;
 
-        output_file << Process("[", "", "") << std::endl;
-        CompileExpression(output_file);
-        output_file << Process("]", "", "") << std::endl;
-
-        output_file << vmwriter.WriteArithmetic("add") << std::endl;
+        output_file << vmwriter.WriteArithmetic("+") << std::endl;
 
         Process("=", "", "");
         CompileExpression(output_file);
@@ -553,8 +616,6 @@ void Compiler::CompileLet(std::ofstream& output_file){
         Process("=", "", "");
         CompileExpression(output_file);
 
-        output_file << vmwriter.WritePop("pointer", 1) << std::endl;
-        output_file << vmwriter.WritePush("that", 0) << std::endl;
         output_file << vmwriter.WritePop(seg, index) << std::endl;
     }
 
@@ -562,11 +623,13 @@ void Compiler::CompileLet(std::ofstream& output_file){
 }
 
 void Compiler::CompileDo(std::ofstream& output_file){
-    output_file << Process("do", "", "") << std::endl;
+    Process("do", "", "");
 
     CompileSubroutineCall(output_file);
 
-    output_file << Process(";", "", "") << std::endl;
+    output_file << vmwriter.WritePop("temp", 0) << std::endl;
+
+    Process(";", "", "");
 }
 
 void Compiler::CompileIf(std::ofstream& output_file){
@@ -574,7 +637,7 @@ void Compiler::CompileIf(std::ofstream& output_file){
     Process("(", "", "");
     CompileExpression(output_file);
 
-    output_file << vmwriter.WriteArithmetic("not") << std::endl;
+    output_file << vmwriter.WriteArithmetic("~") << std::endl;
     output_file << vmwriter.WriteIf("FALSE" + std::to_string(cond_counter)) << std::endl;
 
     Process(")", "", "");
@@ -602,15 +665,15 @@ void Compiler::CompileWhile(std::ofstream& output_file){
     Process("(", "", "");
     CompileExpression(output_file);
 
-    output_file << vmwriter.WriteArithmetic("not") << std::endl;
+    output_file << vmwriter.WriteArithmetic("~") << std::endl;
 
     Process(")", "", "");
     output_file << vmwriter.WriteIf("LOOP_END" + std::to_string(cond_counter)) << std::endl;
-    output_file << Process("{", "", "") << std::endl;
+    Process("{", "", "");
     CompileStatements(output_file);
 
     output_file << vmwriter.WriteGoto("LOOP_START" + std::to_string(cond_counter)) << std::endl;
-    output_file << Process("}", "", "") << std::endl;
+    Process("}", "", "");
     
     output_file << vmwriter.WriteLabel("LOOP_END" + std::to_string(cond_counter)) << std::endl;
 }
@@ -622,16 +685,15 @@ void Compiler::CompileReturn(std::ofstream& output_file){
         CompileExpression(output_file);
     }
 
-    output_file << vmwriter.WriteReturn() << std::endl;
-
     Process(";", "", "");
 }
 
 std::string Compiler::Process(std::string str, std::string tkn_type, std::string specific_type){
     if (lexer.GetCurrentToken() == str || lexer.GetTokenType() == tkn_type || lexer.GetSpecificType(str) == specific_type){
-        // std::string xml = GetTokenXML(lexer.GetCurrentToken(), lexer.GetTokenType());
+        std::string token = lexer.GetCurrentToken(); 
         if (lexer.HasMoreTokens()) {lexer.Advance();}
-        return lexer.GetCurrentToken();
+        return token;
+        
     } else {
         return "Syntax error";
     }
