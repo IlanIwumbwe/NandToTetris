@@ -1,5 +1,6 @@
 #include <vector>
 #include <filesystem>
+#include <iostream>
 #include <string>
 #include <map>
 #include <regex>
@@ -16,12 +17,23 @@ std::vector<std::string> GetFilesToParse(std::string &path, std::string input_ex
         paths.push_back(path);
         return paths;
     } else{
+        std::string main_path = "";
+
         for (const auto& entry : fs::directory_iterator(path))
         {   
-            if (entry.path().extension() == input_extension){
+            if (entry.path().filename() == "Main" + input_extension){
+                main_path = entry.path().string();
+            } else if (entry.path().extension() == input_extension){
                 paths.push_back(entry.path().string());
             }
         }
+
+        if (main_path == ""){
+            std::cout << "Entry point should be named 'Main'" << std::endl;
+        } else {
+            // enforce compilation order so that all classes are defined
+            paths.push_back(main_path);
+        }   
     }
 
     return paths;

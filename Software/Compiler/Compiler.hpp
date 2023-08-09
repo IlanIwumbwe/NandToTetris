@@ -21,6 +21,7 @@ class SymbolTable{
         SymbolTable();
         void ClearTable();
         void printTable();
+        bool NameIsType(std::string name);
         void SetRow(std::string name, TableRow row);
         TableRow GetRow(std::string name);
         void define(std::string name, std::string type, std::string kind);

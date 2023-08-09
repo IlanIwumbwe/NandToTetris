@@ -17,9 +17,6 @@ int main()
     Lexer lexer;
     CompilerXML cpXML;
 
-    SymbolTable cLSymbolTable;
-    SymbolTable sLSymbolTable;
-    VMWriter vmwriter;
     Compiler cp;
 
     for (std::string path : paths){

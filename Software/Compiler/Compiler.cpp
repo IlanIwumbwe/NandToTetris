@@ -46,6 +46,16 @@ int SymbolTable::varCount(std::string kind){
     return count;
 }
 
+bool SymbolTable::NameIsType(std::string name){
+    for(const auto& pair : table){
+        if (pair.second.type == name){
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void SymbolTable::printTable(){
     std::cout << "Printing table...." << std::endl;
     for(const auto& pair : table){
@@ -175,6 +185,7 @@ bool Compiler::NameInSubs(std::string name){
 
     return it != subroutines.end();
 }
+
 
 std::string Compiler::SubKind(std::string sub_name){
     auto it = std::find_if(subroutines.begin(), subroutines.end(), [sub_name](const Subroutine& sub){
@@ -508,7 +519,7 @@ void Compiler::CompileSubroutineCall(std::ofstream& output_file){
         } else {
             std::string identifier = Process("", "IDENTIFIER", "");
             
-            // OS class identifiers not allowed
+            // OS class identifiers not allowed, and if identifier at this point is a declared type in 
             if (!NameInClasses(identifier)){
 
                 // search symbol tables for idenitfier
@@ -536,21 +547,17 @@ void Compiler::CompileSubroutineCall(std::ofstream& output_file){
                 Process(".", "", "");
                 std::string sub_name = Process("", "IDENTIFIER", "");
 
-                if (NameInSubs(sub_name)){
-                    if (SubKind(sub_name) != "method"){
-                        output_file << "Syntax error: Functions should be referenced with class names" << std::endl;
-                    } else {
-                        Process("(", "", "");
-                        int nArgs = CompileExpressionList(output_file);
-                        Process(")", "", "");
-                        
-                        std::string class_name = (identifier_loc == "sub")? sLSymbolTable.typeOf(identifier) : cLSymbolTable.typeOf(identifier);
-                        output_file << vmwriter.WriteCall(class_name  + "." + sub_name, nArgs + 1) << std::endl;
-                    }
+                //if (SubKind(sub_name) != "method"){
+                //    output_file << "Syntax error: Functions should be referenced with class names" << std::endl;
+                //} else {
+                Process("(", "", "");
+                int nArgs = CompileExpressionList(output_file);
+                Process(")", "", "");
+                
+                std::string class_name = (identifier_loc == "sub")? sLSymbolTable.typeOf(identifier) : cLSymbolTable.typeOf(identifier);
+                output_file << vmwriter.WriteCall(class_name  + "." + sub_name, nArgs + 1) << std::endl;
+                //}
                     
-                } else {
-                    output_file << "Syntax error: subroutine not defined" << std::endl;
-                }
 
             } else {
 
