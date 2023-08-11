@@ -74,19 +74,6 @@ The figure illustrates the hardware platform built.
   Decides what to compute based on incoming machine code instruction.
 
 
-Software:
-_________
-
-The pipeline is as follows:
-![Pipeline](images/IMG_6391.jpg)
-
-Example output from my software:
-
-![pongjack](images/pongjack.png) -> 
-![pongvm](images/pongvm.png) ->
-![pongasm](images/pongasm.png) ->
-![ponghack](images/ponghack.png)
-
 Virtual Machine
 _______________
 
