@@ -519,7 +519,7 @@ void Compiler::CompileSubroutineCall(std::ofstream& output_file){
         } else {
             std::string identifier = Process("", "IDENTIFIER", "");
             
-            // OS class identifiers not allowed, and if identifier at this point is a declared type in 
+            // OS class identifiers not allowed, and if identifier isn't a class type, then it must be an object
             if (!NameInClasses(identifier)){
 
                 // search symbol tables for idenitfier

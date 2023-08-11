@@ -50,7 +50,7 @@ std::string GetOutputPath(std::string &input_path, std::string output_extension,
             output_extension = (compiler_flag == "T") ? "T.xml" : ".xml";
         }
 
-        std::regex pattern(R"(.jack)");
+        std::regex pattern(path.filename().extension().string());
         return std::regex_replace(path.string(), pattern, output_extension);
     }
 }
