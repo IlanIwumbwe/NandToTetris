@@ -1,9 +1,136 @@
-// OS class for Math services
+/* 
+commonly used mathematical functions in the Jack language
+*/
 
 
 class Math {
-    
 
+    static Array twotothe;
 
+    /** Initializes the library. */
+    function void init() {
+        let twotothe = Array.new(16);
 
+        let twotothe[0] = 1;
+        let twotothe[1] = 2;
+        let twotothe[2] = 4;
+        let twotothe[3] = 8;
+        let twotothe[4] = 16;
+        let twotothe[5] = 32;
+        let twotothe[6] = 64;
+        let twotothe[7] = 128;
+        let twotothe[8] = 256;
+        let twotothe[9] = 512;
+        let twotothe[10] = 1024;
+        let twotothe[11] = 2048;
+        let twotothe[12] = 4096;
+        let twotothe[13] = 8192;
+        let twotothe[14] = 16384;
+        let twotothe[15] = 32768;
+
+    }
+
+    /** Returns the absolute value of x. */
+    function int abs(int x) {
+        if (x > 0){ return x; } else { return -x; }
+    }
+
+    /** Returns true if the ith bit from LSB is 1, false otherwise */
+    function bool bit(x, i){
+        return ~((twotothe[i] & x) = 0);
+    }
+
+    /** Returns the product of x and y. 
+     *  When a Jack compiler detects the multiplication operator '*' in the 
+     *  program's code, it handles it by invoking this method. In other words,
+     *  the Jack expressions x*y and multiply(x,y) return the same value.
+     */
+    function int multiply(int x, int y) {
+        var int sum, shifted_x, index;
+        let sum = 0;
+        let shifted_x = x;
+        let index = 0;
+
+        while (index < 16){
+            // if ith bit of y = 1...
+            if (bit(y, index) = true){
+                sum = sum + shifted_x;
+                index = index + 1;
+            }
+
+            shifted_x = 2 * shifted_x;
+        }
+
+        return sum;
+    }
+
+    /** Returns the integer part of x/y.
+     *  When a Jack compiler detects the multiplication operator '/' in the 
+     *  program's code, it handles it by invoking this method. In other words,
+     *  the Jack expressions x/y and divide(x,y) return the same value.
+     */
+    function int divide(int x, int y) {
+        var int abs_x, abs_y, q, result;
+        var bool neg_x, neg_y;
+
+        let neg_x = x < 0;
+        let neg_y = y < 0;
+
+        let abs_x = Math.abs(x);
+        let abs_y = Math.abs(y);
+
+        if ((abs_y > abs_x) || (y <= 0)){return 0;}   // overflow or invalid division?
+
+        let q = Math.divide(x, y+y);
+
+        if ((abs_x - (q+q * abs_y)) < abs_y){
+            let result = q+q;
+        } else {
+            let result = q+q+ 1;
+        }
+
+        if (neg_x = neg_y){
+            return result;
+        } else {
+            return -result;
+        }
+
+    }
+
+    /** Returns the integer part of the square root of x. */
+    function int sqrt(int x) {
+        var int y, j, val;
+        let y = 0;
+        let j = 7;
+
+        while(~(j < 0)){
+            let val = Math.multiply(y + twotothe[j], y + twotothe[j]);
+            
+            if((val <= x) & (val > 0)){
+                let y = y + twotothe[j];
+            } 
+
+            let j = j - 1;   
+        }
+
+    }
+
+    /** Returns the greater number. */
+    function int max(int a, int b) {
+        if (a > b){
+            return a;
+        } else {
+            return b;
+        }
+    }
+
+    /** Returns the smaller number. */
+    function int min(int a, int b) {
+        if (a < b){
+            return a;
+        } else {
+            return b;
+        }
+
+    }
 }
