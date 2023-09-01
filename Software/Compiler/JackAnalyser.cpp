@@ -7,10 +7,13 @@
 
 int main()
 {
-    std::string FILE_PATH;
+    std::string FILE_PATH, choice;
 
     std::cout << "Enter path of Jack file(s): ";
     std::cin >> FILE_PATH;
+
+    std::cout << "Get tokens in file? (Y/N): ";
+    std::cin >> choice;
     
     std::vector<std::string> paths = GetFilesToParse(FILE_PATH, ".jack");
 
@@ -24,15 +27,18 @@ int main()
         // for each file, set it as the file to be tokenised, tokenise and save them in an xml doc
         lexer.SetFilePath(path);
         lexer.Lex();
-        lexer.SaveTokens(path);
-
+        
         /* send tokens to compiler for full compilation 
             C is a compiler save flag, so that the loaded output path is correct
         */ 
-        // this compiler gives XML output
-        lexer.InitialiseCurrToken(); // set current token to top of token buffer
-        output_path = GetOutputPath(path, ".xml", "C");
-        cpXML.Compile(output_path, lexer);
+
+        if (choice == "Y" || choice == "y"){ 
+            lexer.SaveTokens(path);  // save program tokens   
+            // this compiler gives XML output
+            lexer.InitialiseCurrToken(); // set current token to top of token buffer
+            output_path = GetOutputPath(path, ".xml", "C");
+            cpXML.Compile(output_path, lexer);
+        } 
         
         // this compiler gives .vm output
         lexer.InitialiseCurrToken(); // set current token to top of token buffer

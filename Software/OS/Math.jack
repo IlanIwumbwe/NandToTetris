@@ -26,7 +26,9 @@ class Math {
         let twotothe[12] = 4096;
         let twotothe[13] = 8192;
         let twotothe[14] = 16384;
-        let twotothe[15] = 32768;
+        let twotothe[15] = 16384 + 16384;
+
+        return;
 
     }
 
@@ -36,7 +38,7 @@ class Math {
     }
 
     /** Returns true if the ith bit from LSB is 1, false otherwise */
-    function bool bit(x, i){
+    function bool bit(int x, int i){
         return ~((twotothe[i] & x) = 0);
     }
 
@@ -53,12 +55,12 @@ class Math {
 
         while (index < 16){
             // if ith bit of y = 1...
-            if (bit(y, index) = true){
-                sum = sum + shifted_x;
-                index = index + 1;
+            if (Math.bit(y, index) = true){
+                let sum = sum + shifted_x;
             }
 
-            shifted_x = 2 * shifted_x;
+            let shifted_x = shifted_x + shifted_x;
+            let index = index + 1;
         }
 
         return sum;
@@ -79,14 +81,14 @@ class Math {
         let abs_x = Math.abs(x);
         let abs_y = Math.abs(y);
 
-        if ((abs_y > abs_x) || (y <= 0)){return 0;}   // overflow or invalid division?
+        if ((abs_y > abs_x) | (y < 0)){return 0;}   // overflow
 
         let q = Math.divide(x, y+y);
 
-        if ((abs_x - (q+q * abs_y)) < abs_y){
-            let result = q+q;
+        if ((abs_x - Math.multiply(q+q, abs_y)) < abs_y){
+            let result = (q+q);
         } else {
-            let result = q+q+ 1;
+            let result = (q+q+1);
         }
 
         if (neg_x = neg_y){
@@ -106,12 +108,15 @@ class Math {
         while(~(j < 0)){
             let val = Math.multiply(y + twotothe[j], y + twotothe[j]);
             
-            if((val <= x) & (val > 0)){
+            if(~(val > x) & (val > 0)){
                 let y = y + twotothe[j];
             } 
 
             let j = j - 1;   
         }
+
+        
+        return y;
 
     }
 
