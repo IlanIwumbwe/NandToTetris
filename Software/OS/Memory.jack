@@ -1,6 +1,86 @@
+/**
+ * This library provides two services: direct access to the computer's main
+ * memory (RAM), and allocation and recycling of memory blocks. The Hack RAM
+ * consists of 32,768 words, each holding a 16-bit binary number.
+ */ 
 
+// algorithm borrowed from: https://github.com/YizheWill/Nand2tetris/blob/master/project12/Memory.jack
+class Memory {
 
-class Memory{
+    static Array memory;
+    static int base, max;
+    static int length;
+    static int nextNode;
+    static int endOfList;
 
-    
+    /** Initializes the class. */
+    function void init() {
+        let memory = 0;
+        let base = 2048; // heap base
+        let max = 16384;
+        let length = base;
+        let nextNode = base + 1;
+        let endOfList = -1;
+        let memory[length] = max - base;
+        let memory[nextNode] = endOfList;
+        return;
+    }
+
+    /** Returns the RAM value at the given address. */
+    function int peek(int address) {
+        return memory[address];
+    }
+
+    /** Sets the RAM value at the given address to the given value. */
+    function void poke(int address, int value) {
+        let memory[address] = value;
+        return;
+    }
+
+    /** Finds an available RAM block of the given size and returns
+     *  a reference to its base address. */
+    function int alloc(int size) {
+
+        var int currNode;
+        var int prevNode;
+        var int next;
+        var int returnAddress;
+
+        let prevNode = length;
+        let currNode = length;
+        let next = nextNode;
+        let returnAddress = -1;
+
+        while (~(memory[currNode] > size) & ~(memory[next] = endOfList)){
+            let prevNode = currNode;
+            let currNode = memory[next];
+            let next = memory[next + 1];
+
+        }
+
+        if (~(next = endOfList)){
+            if (currNode < (size + 3)){
+                let memory[prevNode + 1] = memory[currNode + 1];
+                let memory[currNode] = size + 1;
+                let returnAddress = currNode + 1;
+            } else {
+                let memory[currNode] = memory[currNode] - size - 1;
+                let returnAddress = currNode + memory[currNode];
+                let memory[returnAddress - 1] = size + 1;
+            }
+
+        }
+        
+        return returnAddress;
+
+    }
+
+    /** De-allocates the given object (cast as an array) by making
+     *  it available for future allocations. */
+    function void deAlloc(int object) {
+        let memory[object] = memory[object - 1];
+        let memory[object + 1] = memory[length + 1];
+        let memory[length + 1] = object;
+        return;
+    }    
 }
