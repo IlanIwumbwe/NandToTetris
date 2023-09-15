@@ -32,6 +32,10 @@ class Math {
 
     }
 
+    function int twopower(int n){
+        return twotothe[n];
+    }
+
     /** Returns the absolute value of x. */
     function int abs(int x) {
         if (x > 0){ return x; } else { return -x; }
@@ -137,5 +141,10 @@ class Math {
             return b;
         }
 
+    }
+
+    /** Modulo */
+    function int mod(int a, int b){
+        return a - b*(a / b);
     }
 }

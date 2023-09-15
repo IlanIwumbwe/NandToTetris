@@ -4,7 +4,7 @@
  * consists of 32,768 words, each holding a 16-bit binary number.
  */ 
 
-// algorithm borrowed from: https://github.com/YizheWill/Nand2tetris/blob/master/project12/Memory.jack
+// alloc algorithm borrowed from: https://github.com/YizheWill/Nand2tetris/blob/master/project12/Memory.jack
 class Memory {
 
     static Array memory;
