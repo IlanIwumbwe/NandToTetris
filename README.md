@@ -122,19 +122,24 @@ ___
 The Operating System described in NandToTetris is really a library of extensions to the Jack high level language that handle: Memory, Keyboard and Screen, Characters and Font, Math, Arrays, Strings, Graphics output. These were implemented in ./Software/OS. The results of testing are shown here.
 
 Memory Test:
+
 ![Mem test](./images/memtest1.png)
 *First memory test*
+
 
 ![Memdiag test](./images/memtest2.png)
 *Memory Diag test*
 
 Array Test:
+
 ![Array test](./images/arraytest.png)
 
 Math Test:
+
 ![Math test](./images/mathtest.png)
 
 String Test:
+
 ![String test](./images/stringtest.png)
 
 Output Test:
