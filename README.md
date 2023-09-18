@@ -116,5 +116,38 @@ ________
 
 Since we are using a 2-tier compilation model, the VM translator which converts VM code into assembly is the compiler's back-end. We need to write code that converts high level code into VM code. The first step is lexing the program, which means reducing the program into its tokens. These tokens can then be parsed to understand the program's semantics by comparing the sequence of tokens to the grammar of the language. Once this is done, we can produce VM code that realises these semantics.
 
+OS
+___
+
+The Operating System described in NandToTetris is really a library of extensions to the Jack high level language that handle: Memory, Keyboard and Screen, Characters and Font, Math, Arrays, Strings, Graphics output. These were implemented in ./Software/OS. The results of testing are shown here.
+
+Memory Test:
+![Mem test](./images/memtest1.png)
+*First memory test*
+
+![Memdiag test](./images/memtest2.png)
+*Memory Diag test*
+
+Array Test:
+![Array test](./images/arraytest.png)
+
+Math Test:
+![Math test](./images/mathtest.png)
+
+String Test:
+![String test](./images/stringtest.png)
+
+Output Test:
+Still debugging
+
+Keyboard Test:
+Still debugging
+
+Screen Test:
+Still debugging
+
+Sys Test:
+Not started yet
+
 
 

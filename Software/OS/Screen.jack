@@ -9,11 +9,11 @@ class Screen {
     static boolean currentColor;
     static boolean white;
     static boolean black;
-    static Array screen;
+    static int SCREEN;
 
     /** Initializes the Screen. */
     function void init() {
-        let screen = 16384;
+        let SCREEN = 16384;
         let white = false;
         let black = true;
         let currentColor = black;
@@ -27,7 +27,7 @@ class Screen {
         let i = 0;
         
         while(i < 8192){
-            let screen[i] = white;
+            do Memory.poke(SCREEN + i, white);
             let i = i + 1;
         }
 
@@ -45,15 +45,16 @@ class Screen {
     function void drawPixel(int x, int y) {
         // y - row, x - col
 
-        var int address, newWord;
+        var int address, mask, value;
 
         let address = (y * 32) + Math.divide(x, 16);
-        let newWord = Math.twopower(x & 15);
+        let mask = Math.twopower(Math.mod(x, 16));
+        let value = Memory.peek(SCREEN + address);
 
         if (currentColor) {
-            let screen[address] = screen[address] | newWord;
+            do Memory.poke(SCREEN + address, value | mask);
         } else {
-            let screen[address] = screen[address] & ~newWord;
+            do Memory.poke(SCREEN + address, value & (~mask));
         }
 
         return;    
@@ -61,12 +62,23 @@ class Screen {
 
     // horizontal line from (x, y) of a given length
     function void drawHorizontalLine(int x, int y, int length){
-        var int dist;
+        var int dist, address;
         let dist = 0;
 
         while(dist < length){
-            do Screen.drawPixel((x + dist), y);
-            let dist = dist + 1;
+            if (~(Math.mod(x + dist, 16) = 0) | ((dist + 15) > length)){
+                do Screen.drawPixel((x + dist), y);
+                let dist = dist + 1;
+
+            } else {
+                let address = (y * 32) + Math.divide(x + dist, 16);
+                if (currentColor) {
+                    do Memory.poke(SCREEN + address, -1);
+                } else {
+                    do Memory.poke(SCREEN + address, 0);
+                }
+                let dist = dist + 16;
+            }
         }
 
         return;

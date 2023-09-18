@@ -46,6 +46,15 @@ class Math {
         return ~((twotothe[i] & x) = 0);
     }
 
+    /** Get the bit at position i in the integer x */
+    function int getBit(int n, int i){
+        if ((n & twotothe[i]) = 0){
+            return 0;
+        } else {
+            return 1;
+        }
+    }
+
     /** Returns the product of x and y. 
      *  When a Jack compiler detects the multiplication operator '*' in the 
      *  program's code, it handles it by invoking this method. In other words,
@@ -57,17 +66,21 @@ class Math {
         let shifted_x = x;
         let index = 0;
 
-        while (index < 16){
-            // if ith bit of y = 1...
-            if (Math.bit(y, index) = true){
-                let sum = sum + shifted_x;
+        if ((x = 0) | (y = 0)){
+            return 0;
+        } else {
+            while (index < 16){
+                // if ith bit of y = 1...
+                if (Math.bit(y, index) = true){
+                    let sum = sum + shifted_x;
+                }
+
+                let shifted_x = shifted_x + shifted_x;
+                let index = index + 1;
             }
 
-            let shifted_x = shifted_x + shifted_x;
-            let index = index + 1;
+            return sum;
         }
-
-        return sum;
     }
 
     /** Returns the integer part of x/y.
@@ -145,6 +158,6 @@ class Math {
 
     /** Modulo */
     function int mod(int a, int b){
-        return a - b*(a / b);
+        return a - Math.multiply(b , (a / b));
     }
 }
