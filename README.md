@@ -142,17 +142,3 @@ String Test:
 
 ![String test](./images/stringtest.png)
 
-Output Test:
-Still debugging
-
-Keyboard Test:
-Still debugging
-
-Screen Test:
-Still debugging
-
-Sys Test:
-Not started yet
-
-
-
